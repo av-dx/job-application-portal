@@ -11,7 +11,8 @@ const UserSchema = new Schema({
 		type: String,
 		required: true
 	},
-	date:{
+	password: { type: String, required: true },
+	date: {
 		type: Date,
 		required: false
 	}
