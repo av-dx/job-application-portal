@@ -56,13 +56,16 @@ export default class Register extends Component {
             }
             axios.post('http://localhost:4000/recruiter/login', recruiter)
                 .then(res => {
-                    alert(res.data);
                     localStorage.setItem("email", recruiter.email);
                     localStorage.setItem("passKey", recruiter.password);
-                    console.log(res.data);
-                    // window.location = '/';
+                    window.location = '/';
                 })
-                .catch(err => { console.log(err); })
+                .catch(err => {
+                    if (err.response) {
+                        console.log(err.response.data)
+                        alert(err.response.data.error)
+                    }
+                })
 
         }
         else {
@@ -72,13 +75,16 @@ export default class Register extends Component {
             }
             axios.post('http://localhost:4000/applicant/login', applicant)
                 .then(res => {
-                    alert(res.data);
                     localStorage.setItem("email", applicant.email);
                     localStorage.setItem("passKey", applicant.password);
-                    console.log(res.data);
-                    // window.location = '/';
+                    window.location = '/';
                 })
-                .catch(err => { console.log(err); })
+                .catch(err => {
+                    if (err.response) {
+                        console.log(err.response.data)
+                        alert(err.response.data.error)
+                    }
+                })
         }
 
 
@@ -98,7 +104,7 @@ export default class Register extends Component {
                                 onChange={this.onChangeValue}
                                 required
                                 name="email"
-
+                                type="email"
                             />
                         </Grid>
                         <Grid item xs={12} sm={6}>
@@ -109,7 +115,7 @@ export default class Register extends Component {
                                 onChange={this.onChangeValue}
                                 required
                                 name="password"
-
+                                type="password"
                             />
                         </Grid>
                         <Grid item xs={12} sm={6}>

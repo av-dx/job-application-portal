@@ -61,18 +61,9 @@ export default class Register extends Component {
                 institute: '', startYear: '', endYear: ''
             }]
         });
-        // this.state.education.push(
-        //     { key: this.state.education.length, institute: '', startYear: '', endYear: '' })
     }
 
     onChangeValue(event) {
-        // if (["institute", "startYear", "endYear"].includes(event.target.name)) {
-        //     let edu = [...this.state.education]
-        //     edu[event.target.dataset.id][event.target.className] = event.target.value.toUpperCase()
-        //     this.setState({ cats }, () => console.log(this.state.cats))
-        // } else {
-        //     this.setState({ [event.target.name]: event.target.value.toUpperCase() })
-        // }
         if (["institute", "startYear", "endYear"].includes(event.target.name)) {
             let edu = [...this.state.education]
             edu[event.target.id][event.target.name] = event.target.value;
@@ -94,6 +85,7 @@ export default class Register extends Component {
                             value={this.state.contact}
                             onChange={this.onChangeValue}
                             name="contact"
+                            type="tel"
                         />
                     </Grid>
                     <Grid item xs={12} sm={12}>
@@ -166,15 +158,17 @@ export default class Register extends Component {
                                                 name="startYear"
                                                 id={ind}
                                                 required
+                                                type="number"
                                             />
                                         </Grid>
                                         <Grid item xs={12} sm={3}>
                                             <TextField className="form-control"
                                                 variant="outlined"
                                                 label="End Year"
-                                                value={this.state.education[ind].endYear}
+                                                value={(["undefined", "null"].includes(String(this.state.education[ind].endYear))) ? '' : this.state.education[ind].endYear}
                                                 onChange={this.onChangeValue}
                                                 name="endYear"
+                                                type="number"
                                                 id={ind}
                                             />
                                         </Grid>
@@ -182,26 +176,6 @@ export default class Register extends Component {
                                 )
                             })}
                         </Grid>
-                    </Grid>
-                    <Grid item xs={6} sm={3}>
-
-                        {/* <TextField className="form-control"
-                                variant="outlined"
-                                label="Resume"
-                                value={this.state.resume}
-                                onChange={this.onChangeValue}
-                        /> */}
-                    </Grid>
-                    <Grid item xs={6} sm={3}>
-                        {/* <TextField className="form-control"
-                                variant="outlined"
-                                label="Profile Picture"
-                                value={this.state.profilepic}
-                                onChange={this.onChangeValue}
-                            /> */}
-                    </Grid>
-                    <Grid item xs={6} sm={3}>
-
                     </Grid>
                 </Grid >
 
@@ -222,7 +196,17 @@ export default class Register extends Component {
                 date: Date.now(),
             }
             axios.post('http://localhost:4000/recruiter/register', newRecruiter)
-                .then(res => { alert("Created\t" + res.data.name); console.log(res.data); window.location = '/'; });
+                .then(res => {
+                    alert("Added a recruiter : " + res.data.name);
+                    console.log(res.data);
+                    window.location = '/';
+                })
+                .catch(err => {
+                    if (err.response) {
+                        console.log(err.response.data)
+                        alert(err.response.data.error)
+                    }
+                })
 
         }
         else {
@@ -235,7 +219,17 @@ export default class Register extends Component {
                 date: Date.now(),
             }
             axios.post('http://localhost:4000/applicant/register', newApplicant)
-                .then(res => { alert("Created\t" + res.data.name); console.log(res.data); window.location = '/'; });
+                .then(res => {
+                    alert("Added an applicant : " + res.data.name);
+                    console.log(res.data);
+                    window.location = '/';
+                })
+                .catch(err => {
+                    if (err.response) {
+                        console.log(err.response.data)
+                        alert(err.response.data.error)
+                    }
+                })
         }
 
 
@@ -265,7 +259,7 @@ export default class Register extends Component {
                                 onChange={this.onChangeValue}
                                 required
                                 name="email"
-
+                                type="email"
                             />
                         </Grid>
                         <Grid item xs={12} sm={6}>
@@ -293,7 +287,7 @@ export default class Register extends Component {
                                 onChange={this.onChangeValue}
                                 required
                                 name="password"
-
+                                type="password"
                             />
                         </Grid>
                         <Grid item xs={12} sm={6}> </Grid>

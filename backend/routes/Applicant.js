@@ -72,14 +72,14 @@ router.post("/login", (req, res) => {
     Applicant.findOne({ email }).then(applicant => {
         // Check if user email exists
         if (!applicant) {
-            return res.status(404).json({
+            return res.status(404).send({
                 error: "Email not found",
             });
         }
         else {
             //res.send("Email Found");
             if (applicant.password != password) {
-                res.send("Password Incorrect");
+                res.status(401).send({ error: "Password Incorrect" });
             }
             else {
                 /* TODO: cleaner way to delete just one key */
