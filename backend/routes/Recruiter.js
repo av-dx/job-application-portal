@@ -61,21 +61,21 @@ router.post("/login", (req, res) => {
     const email = req.body.email;
     const password = req.body.password;
     // Find user by email
-    User.findOne({ email }).then(user => {
+    Recruiter.findOne({ email }).then(recruiter => {
         // Check if user email exists
-        if (!user) {
+        if (!recruiter) {
             return res.status(404).json({
                 error: "Email not found",
             });
         }
         else {
             //res.send("Email Found");
-            if (user.password != password) {
+            if (recruiter.password != password) {
                 res.send("Password Incorrect");
             }
             else {
-                res.send("Logged in as " + user.name);
-                return user;
+                res.send("Logged in as " + recruiter.name);
+                return recruiter;
             }
         }
     });
