@@ -20,7 +20,7 @@ router.get("/", function (req, res) {
 
 // Getting all the users
 router.get("/:id/applications", function (req, res) {
-    Job.findById(req.params.id).then(job =>{
+    Job.findById(req.params.id).then(job => {
         if (!job) {
             return res.status(404).json({
                 error: "Job doesn't exist!",
@@ -92,13 +92,13 @@ router.post("/postjob", (req, res) => {
 });
 
 
-router.post("/:id/edit", (req, res) => {
+router.post("/edit", (req, res) => {
     const recruiterKey = req.body.recruiterKey;
     const email = req.body.recruiteremail;
     const limit = req.body.limit;
     const deadline = req.body.deadline;
 
-    Job.findById(req.params.id)
+    Job.findOne({ email })
         .then(job => {
             if (!job) {
                 return res.status(404).json({

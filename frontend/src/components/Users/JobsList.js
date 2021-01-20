@@ -136,7 +136,7 @@ class JobsList extends Component {
                 <Grid container>
                     <Grid item xs={12} md={3} lg={3}>
                         <List component="nav" aria-label="mailbox folders">
-                            <ListItem text>
+                            <ListItem>
                                 <h3>Filters</h3>
                             </ListItem>
                         </List>

@@ -3,6 +3,7 @@ var router = express.Router();
 
 // Load User model
 const Recruiter = require("../models/Recruiter");
+const Jobs = require("../models/Jobs");
 
 // GET request 
 // Getting all the users
@@ -18,14 +19,15 @@ router.get("/", function (req, res) {
 
 // Getting active jobs
 /* TODO: Currently returns all jobs, see moodle asked by Mehul */
-router.get("/:id/activejobs", function (req, res) {
-    Recruiter.findOne({ _id: req.params.id }).populate('jobs').then(recruiter => {
+router.post("/activejobs", function (req, res) {
+    Recruiter.findOne({ email: req.body.email}).populate("jobs").then(recruiter => {
         if (!recruiter) {
-            return res.status(404).json({
+            return res.status(404).send({
                 error: "Invalid Recruiter Email",
             });
         }
         else {
+            console.log(recruiter.jobs);
             res.json(recruiter.jobs);
         }
     });

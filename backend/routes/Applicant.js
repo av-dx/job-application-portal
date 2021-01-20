@@ -3,6 +3,7 @@ var router = express.Router();
 
 // Load User model
 const Applicant = require("../models/Applicant");
+const Application = require('../models/Application');
 
 // GET request 
 // Getting all the users
@@ -18,7 +19,7 @@ router.get("/", function (req, res) {
 
 // Getting all applications for an applicant
 router.get("/postedapplications", function (req, res) {
-    Applicant.findOne({ email: req.body.email }).then(applicant => {
+    Applicant.findOne({ email: req.body.email }).populate('applications').then(applicant => {
         if (!applicant) {
             return res.status(404).send({
                 error: "Email not found",
@@ -31,7 +32,6 @@ router.get("/postedapplications", function (req, res) {
                 });
             }
             else {
-                applicant.populate('applications')
                 res.json(applicant.applications);
             }
         }
