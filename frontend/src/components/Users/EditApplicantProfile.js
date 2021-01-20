@@ -115,6 +115,7 @@ class Profile extends Component {
                                     value={this.state.email}
                                     name="email"
                                     label="Email"
+                                    type="Email"
                                     onChange={this.onChangeValue}
                                     className="form-control"
                                     required

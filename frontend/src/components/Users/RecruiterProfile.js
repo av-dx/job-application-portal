@@ -19,7 +19,7 @@ import InputAdornment from "@material-ui/core/InputAdornment";
 import SearchIcon from "@material-ui/icons/Search";
 import ArrowUpwardIcon from '@material-ui/icons/ArrowUpward';
 import ArrowDownwardIcon from '@material-ui/icons/ArrowDownward';
-import { InputLabel } from '@material-ui/core';
+import { InputLabel, TextareaAutosize } from '@material-ui/core';
 import FormControl from '@material-ui/core/FormControl'
 import Rating from '@material-ui/lab/Rating'
 
@@ -30,19 +30,16 @@ class Profile extends Component {
         this.state = {
             name: '',
             email: '',
-            education: [],
-            skills: [],
-            rating: 0,
-            resume: [],
-            profilepic: ''
+            contact: '',
+            bio: '',
         }
 
     }
 
     componentDidMount() {
-        axios.post('http://localhost:4000/applicant/login', { email: localStorage.getItem("email"), password: localStorage.getItem("password") })
-            .then(application => {
-                this.setState(application.data);
+        axios.post('http://localhost:4000/recruiter/login', { email: localStorage.getItem("email"), password: localStorage.getItem("password") })
+            .then(recruiter => {
+                this.setState(recruiter.data);
             })
             .catch(function (error) {
                 console.log(error);
@@ -79,75 +76,23 @@ class Profile extends Component {
                                 />
                             </Grid>
                             <Grid item xs={6}>
-
+                                <InputLabel>Contact</InputLabel>
+                                <TextField
+                                    variant="outlined"
+                                    value={this.state.contact}
+                                    className="form-control"
+                                    required
+                                />
                             </Grid>
                             <Grid item xs={6}>
-                                <InputLabel>Rating</InputLabel>
-                                <Rating
-                                    name="rating"
-                                    value={this.state.value}
-                                    size="large"
-                                    readOnly
-                                />
+
                             </Grid>
                         </Grid>
                     </Grid>
                     <Grid item xs={12}>
-                        <InputLabel>Education Details</InputLabel>
-                        <Grid container spacing={6}>
-                            <Grid item xs={12}>
-                                <Grid container spacing={6}>
-                                    {this.state.education.map((edu, ind) => {
-                                        return (
-                                            <Grid container item spacing={3} key={ind}>
-                                                <Grid item xs={1} sm={1}>
-                                                    <TextField
-                                                        variant="outlined"
-                                                        value={ind + 1}
-                                                        className="form-control"
-                                                    />
-                                                </Grid>
-                                                <Grid item xs={11} sm={5}>
-                                                    <TextField
-                                                        variant="outlined"
-                                                        label="Institute Name"
-                                                        value={this.state.education[ind].institute}
-                                                        name="institute"
-                                                        id={ind}
-                                                        required
-                                                        className="form-control"
-                                                    />
-                                                </Grid>
-                                                <Grid item xs={12} sm={3}>
-                                                    <TextField
-                                                        variant="outlined"
-                                                        label="Start Year"
-                                                        value={this.state.education[ind].startYear}
-                                                        name="startYear"
-                                                        id={ind}
-                                                        required
-                                                        className="form-control"
-                                                        type="number"
-                                                    />
-                                                </Grid>
-                                                <Grid item xs={12} sm={3}>
-                                                    <TextField
-                                                        variant="outlined"
-                                                        label="End Year"
-                                                        value={(["undefined", "null"].includes(String(this.state.education[ind].endYear))) ? '' : this.state.education[ind].endYear}
-                                                        name="endYear"
-                                                        className="form-control"
-                                                        type="number"
-                                                        id={ind}
-                                                    />
-                                                </Grid>
-                                            </Grid>
-                                        )
-                                    })}
-                                </Grid>
-                            </Grid>
-                        </Grid >
-
+                        <InputLabel>Company Bio</InputLabel>
+                        <TextareaAutosize value={this.state.bio} className="form-control">
+                        </TextareaAutosize>
                     </Grid>
                     <Grid item xs={3}>
                         <Button

@@ -31,6 +31,42 @@ router.get("/:id/activejobs", function (req, res) {
     });
 });
 
+// Update recruiter info
+router.post("/edit", function (req, res) {
+    Recruiter.findOne({ email: req.body.curemail }).then(recruiter => {
+        if (!recruiter) {
+            return res.status(404).send({
+                error: "Email not found",
+            });
+        }
+        else {
+            if (recruiter.password != req.body.password) {
+                return res.status(401).send({
+                    error: "Password Incorrect",
+                });
+            }
+            else {
+                recruiter.name = req.body.name
+                recruiter.email = req.body.email
+                recruiter.password = req.body.password
+                recruiter.contact = req.body.contact
+                recruiter.bio = req.body.bio
+
+                recruiter.save(function (err, done) {
+                    if (err) {
+                        return res.status(400).send({ error: "Couldn't edit recruiter : " + err });
+                    }
+                    else {
+                        return res.status(200).send({ error: "Recruiter info Updated!" });
+                    }
+                })
+            }
+        }
+    });
+});
+
+
+
 // NOTE: Below functions are just sample to show you API endpoints working, for the assignment you may need to edit them
 
 // POST request 
@@ -71,11 +107,16 @@ router.post("/login", (req, res) => {
         else {
             //res.send("Email Found");
             if (recruiter.password != password) {
-                res.send("Password Incorrect");
+                res.status(401).send({ error: "Password Incorrect" });
             }
             else {
-                res.send("Logged in as " + recruiter.name);
-                return recruiter;
+                /* TODO: cleaner way to delete just one key */
+                res.status(200).json({
+                    name: recruiter.name,
+                    email: recruiter.email,
+                    contact: recruiter.contact,
+                    bio: recruiter.bio
+                });
             }
         }
     });
