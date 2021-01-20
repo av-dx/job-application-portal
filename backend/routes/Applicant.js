@@ -82,8 +82,16 @@ router.post("/login", (req, res) => {
                 res.send("Password Incorrect");
             }
             else {
-                res.send("Logged in as " + applicant.name);
-                return applicant;
+                /* TODO: cleaner way to delete just one key */
+                res.status(200).json({
+                    name: applicant.name,
+                    email: applicant.email,
+                    education: applicant.education,
+                    skills: applicant.skills,
+                    rating: applicant.rating,
+                    resume: applicant.resume,
+                    profilepic: applicant.profilepic
+                });
             }
         }
     });
