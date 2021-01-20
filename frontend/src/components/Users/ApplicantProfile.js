@@ -22,7 +22,6 @@ import ArrowDownwardIcon from '@material-ui/icons/ArrowDownward';
 import { InputLabel } from '@material-ui/core';
 import FormControl from '@material-ui/core/FormControl'
 import Rating from '@material-ui/lab/Rating'
-import FormHelperText from '@material-ui/core/FormHelperText'
 
 class Profile extends Component {
 
@@ -38,58 +37,10 @@ class Profile extends Component {
             profilepic: ''
         }
 
-        this.onChangeValue = this.onChangeValue.bind(this);
-        this.onAddEducation = this.onAddEducation.bind(this);
-        this.onSubmit = this.onSubmit.bind(this);
     }
-
-    onAddEducation() {
-        this.setState({
-            education: [...this.state.education, {
-                institute: '', startYear: '', endYear: ''
-            }]
-        });
-    }
-
-    onChangeValue(event) {
-        if (["institute", "startYear", "endYear"].includes(event.target.name)) {
-            let edu = [...this.state.education]
-            edu[event.target.id][event.target.name] = event.target.value;
-            this.setState({ edu });
-        }
-        else {
-            this.setState({ [event.target.name]: event.target.value });
-        }
-    }
-
-
-    onSubmit(e) {
-        e.preventDefault();
-        const newApplicant = {
-            name: this.state.name,
-            curemail: localStorage.getItem("email"),
-            email: this.state.email,
-            education: this.state.education,
-            skills: this.state.skills,
-            password: localStorage.getItem("passKey"),
-        }
-        axios.post('http://localhost:4000/applicant/edit', newApplicant)
-            .then(res => {
-                alert("Account info updated!");
-                console.log(res.data);
-                window.location = '/profile';
-            })
-            .catch(err => {
-                if (err.response) {
-                    console.log(err.response.data)
-                    alert(err.response.data.error)
-                }
-            })
-    }
-
 
     componentDidMount() {
-        axios.post('http://localhost:4000/applicant/login', { email: localStorage.getItem("email"), password: localStorage.getItem("passKey") })
+        axios.post('http://localhost:4000/applicant/login', { email: localStorage.getItem("email"), password: localStorage.getItem("password") })
             .then(application => {
                 this.setState(application.data);
             })
@@ -108,42 +59,42 @@ class Profile extends Component {
                     </Grid>
 
                     <Grid item xs={8}>
-                        <Grid container spacing={6}>
+                        <Grid container spacing={3}>
                             <Grid item xs={6}>
+                                <InputLabel>Email</InputLabel>
                                 <TextField
                                     variant="outlined"
                                     value={this.state.email}
-                                    name="email"
-                                    label="Email"
-                                    onChange={this.onChangeValue}
                                     className="form-control"
                                     required
-                                    helperText="Changing this will require you to re-login!"
                                 />
                             </Grid>
                             <Grid item xs={6}>
+                                <InputLabel>Username</InputLabel>
                                 <TextField
                                     variant="outlined"
                                     value={this.state.name}
-                                    name="name"
-                                    label="Username"
-                                    onChange={this.onChangeValue}
                                     className="form-control"
                                     required
                                 />
                             </Grid>
                             <Grid item xs={6}>
+                                <InputLabel>Skills</InputLabel>
                                 <TextField
                                     variant="outlined"
                                     value={this.state.skills}
-                                    name="skills"
-                                    label="Skills"
-                                    onChange={this.onChangeValue}
                                     className="form-control"
                                     required
                                 />
                             </Grid>
                             <Grid item xs={6}>
+                                <InputLabel>Rating</InputLabel>
+                                <Rating
+                                    name="rating"
+                                    value={this.state.value}
+                                    size="large"
+                                    readOnly
+                                />
                             </Grid>
                         </Grid>
                     </Grid>
@@ -167,7 +118,6 @@ class Profile extends Component {
                                                         variant="outlined"
                                                         label="Institute Name"
                                                         value={this.state.education[ind].institute}
-                                                        onChange={this.onChangeValue}
                                                         name="institute"
                                                         id={ind}
                                                         required
@@ -179,7 +129,6 @@ class Profile extends Component {
                                                         variant="outlined"
                                                         label="Start Year"
                                                         value={this.state.education[ind].startYear}
-                                                        onChange={this.onChangeValue}
                                                         name="startYear"
                                                         id={ind}
                                                         required
@@ -192,7 +141,6 @@ class Profile extends Component {
                                                         variant="outlined"
                                                         label="End Year"
                                                         value={(["undefined", "null"].includes(String(this.state.education[ind].endYear))) ? '' : this.state.education[ind].endYear}
-                                                        onChange={this.onChangeValue}
                                                         name="endYear"
                                                         className="form-control"
                                                         type="number"
@@ -214,8 +162,8 @@ class Profile extends Component {
                             size="large"
                             color="primary"
                             variant="contained"
-                            onClick={this.onSubmit}>
-                            Done
+                            onClick={() => { window.location = '/editprofile' }}>
+                            Edit Profile
                             </Button>
                     </Grid>
                 </Grid>
