@@ -23,7 +23,7 @@ import { InputLabel } from '@material-ui/core';
 import FormControl from '@material-ui/core/FormControl'
 import Rating from '@material-ui/lab/Rating'
 
-class Profile extends Component {
+class ApplicantProfile extends Component {
 
     constructor(props) {
         super(props);
@@ -172,4 +172,4 @@ class Profile extends Component {
     }
 }
 
-export default Profile;
+export default ApplicantProfile;

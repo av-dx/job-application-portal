@@ -25,7 +25,7 @@ import Rating from '@material-ui/lab/Rating'
 import FormHelperText from '@material-ui/core/FormHelperText'
 import TextareaAutosize from '@material-ui/core/TextareaAutosize'
 
-class Profile extends Component {
+class EditRecruiterProfile extends Component {
 
     constructor(props) {
         super(props);
@@ -147,4 +147,4 @@ class Profile extends Component {
     }
 }
 
-export default Profile;
+export default EditRecruiterProfile;
