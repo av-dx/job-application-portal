@@ -79,6 +79,7 @@ router.post("/postjob", (req, res) => {
                 newJob.save(function (err, job) {
                     if (err) {
                         console.log(err);
+                        res.status(400);
                     }
                     else {
                         recruiter.jobs.push(job._id);

@@ -12,6 +12,8 @@ import ApplicantProfile from './components/Users/ApplicantProfile'
 import EditApplicantProfile from './components/Users/EditApplicantProfile'
 import RecruiterProfile from './components/Users/RecruiterProfile'
 import EditRecruiterProfile from './components/Users/EditRecruiterProfile'
+import RecruiterDashboard from './components/Users/RecruiterDashboard';
+import NewJob from './components/Users/NewJob';
 
 function App() {
   return (
@@ -26,6 +28,9 @@ function App() {
         <Route path="/login" component={Login} />
         <Route path="/profile" component={(localStorage.getItem("type") == "recruiter") ? RecruiterProfile : ApplicantProfile} />
         <Route path="/editprofile" component={(localStorage.getItem("type") == "recruiter") ? EditRecruiterProfile : EditApplicantProfile} />
+        {/* <Route path="/dashboard" component={(localStorage.getItem("type") == "recruiter") ? RecruiterDashboard : ApplicantDashboard} /> */}
+        <Route path="/dashboard" component={RecruiterDashboard} />
+        <Route path="/newjob" component={NewJob} />
       </div>
     </Router>
   );
