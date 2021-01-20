@@ -17,23 +17,61 @@ router.get("/", function (req, res) {
 });
 
 // Getting all applications for an applicant
-router.get("/:id/applications", function (req, res) {
-    Applicant.findOne({ _id: req.params.id }).populate('applications').then(applicant => {
+router.get("/postedapplications", function (req, res) {
+    Applicant.findOne({ email: req.body.email }).then(applicant => {
         if (!applicant) {
-            return res.status(404).json({
-                error: "Invalid Applicant Email",
+            return res.status(404).send({
+                error: "Email not found",
             });
         }
         else {
-            if (applicant.password != req.body.applicantKey) {
-                res.send("Password Incorrect");
+            if (applicant.password != req.body.password) {
+                return res.status(401).send({
+                    error: "Password Incorrect",
+                });
             }
             else {
+                applicant.populate('applications')
                 res.json(applicant.applications);
             }
         }
     });
 });
+
+// Update applicant info
+router.post("/edit", function (req, res) {
+    Applicant.findOne({ email: req.body.curemail }).then(applicant => {
+        if (!applicant) {
+            return res.status(404).send({
+                error: "Email not found",
+            });
+        }
+        else {
+            if (applicant.password != req.body.password) {
+                return res.status(401).send({
+                    error: "Password Incorrect",
+                });
+            }
+            else {
+                applicant.name = req.body.name
+                applicant.email = req.body.email
+                applicant.password = req.body.password
+                applicant.skills = req.body.skills
+                applicant.education = req.body.education
+
+                applicant.save(function (err, done) {
+                    if (err) {
+                        return res.status(400).send({ error: "Couldn't edit applicant : " + err });
+                    }
+                    else {
+                        return res.status(200).send({ error: "Applicant info Updated!" });
+                    }
+                })
+            }
+        }
+    });
+});
+
 /* TODO: Get consistency on password, applicantKey, etc conventions */
 // NOTE: Below functions are just sample to show you API endpoints working, for the assignment you may need to edit them
 

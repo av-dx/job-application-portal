@@ -9,6 +9,7 @@ import Register from './components/Common/Register'
 import Login from './components/Common/Login'
 import Navbar from './components/templates/Navbar'
 import Profile from './components/Users/Profile'
+import EditProfile from './components/Users/EditProfile'
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
         <Route path="/register" component={Register}/>
         <Route path="/login" component={Login}/>
         <Route path="/profile" component={Profile}/>
+        <Route path="/editprofile" component={EditProfile}/>
       </div>
     </Router>
   );
