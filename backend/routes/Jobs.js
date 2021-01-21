@@ -93,16 +93,16 @@ router.post("/postjob", (req, res) => {
 });
 
 
-router.post("/edit", (req, res) => {
-    const recruiterKey = req.body.recruiterKey;
-    const email = req.body.recruiteremail;
+router.post("/:id/edit", (req, res) => {
+    const recruiterKey = req.body.password;
+    const email = req.body.email;
     const limit = req.body.limit;
     const deadline = req.body.deadline;
 
-    Job.findOne({ email })
+    Job.findById(req.params.id)
         .then(job => {
             if (!job) {
-                return res.status(404).json({
+                return res.status(404).send({
                     error: "Job doesn't exist!",
                 });
             }
@@ -111,11 +111,11 @@ router.post("/edit", (req, res) => {
                     Recruiter.findOne({ email: email }).then(owner => {
                         if (!owner) {
                             // How did we get here?
-                            res.status(500).json({ error: "This Job doesn't belong to anybody!" });
+                            res.status(500).send({ error: "This Job doesn't belong to anybody!" });
                         }
                         else {
                             if (owner.password != recruiterKey) {
-                                res.status(400).json({ error: "You are not authorised [Wrong Password]!" });
+                                res.status(400).send({ error: "You are not authorised [Wrong Password]!" });
                             }
                             else {
                                 job.limit = limit;
@@ -123,10 +123,10 @@ router.post("/edit", (req, res) => {
 
                                 job.save(function (err, done) {
                                     if (err) {
-                                        res.status(400).json({ error: "Couldn't edit job : " + err });
+                                        res.status(400).send({ error: "Couldn't edit job : " + err });
                                     }
                                     else {
-                                        res.status(200).json("Job Listing Updated!");
+                                        res.status(200).send({ error: "Job Listing Updated!" });
                                     }
                                 })
                             }
@@ -141,8 +141,8 @@ router.post("/edit", (req, res) => {
 });
 
 router.delete("/:id", (req, res) => {
-    const recruiterKey = req.body.recruiterKey;
-    const email = req.body.recruiteremail;
+    const recruiterKey = req.body.password;
+    const email = req.body.email;
 
     Job.findById(req.params.id)
         .then(job => {
@@ -150,22 +150,22 @@ router.delete("/:id", (req, res) => {
                 Recruiter.findOne({ email: email }).then(owner => {
                     if (!owner) {
                         // How did we get here?
-                        res.status(500).json({ error: "This Job doesn't belong to anybody!" });
+                        res.status(500).send({ error: "This Job doesn't belong to anybody!" });
                     }
                     else {
                         if (owner.password != recruiterKey) {
-                            res.status(400).json({ error: "You are not authorised [Wrong Password]!" });
+                            res.status(400).send({ error: "You are not authorised [Wrong Password]!" });
                         }
                         else {
                             Recruiter.updateOne({ _id: owner._id }, { $pullAll: { jobs: [job._id] } }).then(() => {
                                 try {
                                     job.delete();
-                                    res.status(200).json("Job Listing Deleted!");
+                                    res.status(200).send({ error: "Job Listing Deleted!" });
                                 } catch (err) {
-                                    res.status(400).json({ error: "Couldn't delete job : " + err });
+                                    res.status(400).send({ error: "Couldn't delete job : " + err });
                                 }
                             }).catch(err => {
-                                res.status(400).json({ error: "Could not update recruiter!: " + err });
+                                res.status(400).send({ error: "Could not update recruiter!: " + err });
                             })
 
                         }
