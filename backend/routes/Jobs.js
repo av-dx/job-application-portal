@@ -85,7 +85,6 @@ router.post("/postjob", (req, res) => {
                     recruiteremail: recruiter.email,
                     count: { applications: 0, positions: 0 },
                     limit: req.body.limit,
-                    /* TODO: Verify Date format. What is Day-23, Mmonth-June , etc.? */
                     postedOn: Date.now(),
                     deadline: req.body.deadline,
                     /* TODO: Limit to Languages? */
@@ -93,16 +92,35 @@ router.post("/postjob", (req, res) => {
                     /* TODO: Enumerators ? */
                     type: req.body.type,
                     /* TODO: Limit to 1-6 months, and 0 indefinite */
-                    duration: req.body.duration,
+                    duration: req.body.duration % 7,
                     /* TODO: Salary positive check */
                     salary: req.body.salary,
                     /* TODO: Dynamic ..... */
                     rating: 0
                 });
+                // Server side validations
+
+                errMsg = "";
+
+                if (!(["Full-Time", "Part-Time", "WFH"].includes(newJob.type))) {
+                    errMsg += "Select Valid Job Type! ";
+                }
+                if (newJob.limit.applications < newJob.limit.positions) {
+                    errMsg += "Max number of applications should be more than the positions! ";
+                }
+                var pattern = /^[a-zA-Z0-9\-_]+(\.[a-zA-Z0-9\-_]+)*@[a-z0-9]+(\-[a-z0-9]+)*(\.[a-z0-9]+(\-[a-z0-9]+)*)*\.[a-z]{2,4}$/;
+                if (!(pattern.test(newJob.recruiteremail))) {
+                    errMsg += "Invalid email format! ";
+                }
+
+                if (errMsg != "") {
+                    return res.status(400).send({ error: "Form Validation Failed! " + errMsg });
+                }
+
                 newJob.save(function (err, job) {
                     if (err) {
                         console.log(err);
-                        res.status(400);
+                        res.status(400).send({ error: err.message });
                     }
                     else {
                         recruiter.jobs.push(job._id);
@@ -163,6 +181,68 @@ router.post("/:id/edit", (req, res) => {
         });
 });
 
+router.post("/:id/rate", (req, res) => {
+    const applicantKey = req.body.password;
+    const email = req.body.email;
+    const applicationid = req.body.applicationid;
+    const jobid = req.params.id;
+    const rating = req.body.rating;
+
+    Application.findById(applicationid)
+        .then(application => {
+            if (!application) {
+                return res.status(404).send({
+                    error: "Application doesn't exist!",
+                });
+            }
+            else {
+                Job.findById(jobid)
+                    .then(job => {
+                        if (!job) {
+                            return res.status(404).send({
+                                error: "Job doesn't exist!",
+                            });
+                        }
+                        else if (application._job != jobid) {
+                            return res.status(401).send({
+                                error: "This application is not for that job!",
+                            })
+                        }
+                        else {
+                            Applicant.findOne({ email: email }).then(applicant => {
+                                if (!applicant) {
+                                    // How did we get here?
+                                    res.status(404).send({ error: "This applicant doesn't exist" });
+                                }
+                                else {
+                                    if (applicant.password != applicantKey) {
+                                        res.status(400).send({ error: "You are not authorised [Wrong Password]!" });
+                                    }
+                                    else {
+
+                                        if (applicant._id != application._applicant) {
+                                            res.status(401).send({ error: "You did not make this application!" });
+                                        }
+                                        else {
+                                            job.rating = (job.rating * job.ratedBy + rating) / (job.ratedBy + 1);
+                                            job.ratedBy += 1;
+                                            job.save(function (err, done) {
+                                                if (err) {
+                                                    res.status(400).send({ error: "Couldn't rate job : " + err });
+                                                }
+                                                else {
+                                                    res.status(200).send({ error: "Job has been rated!" });
+                                                }
+                                            })
+                                        }
+                                    }
+                                }
+                            })
+                        }
+                    })
+            }
+        })
+})
 
 router.post("/:id/addapplication", (req, res) => {
     const applicantKey = req.body.password;

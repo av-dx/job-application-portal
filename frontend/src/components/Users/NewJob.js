@@ -36,7 +36,7 @@ export default class NewJob extends Component {
             title: '',
             limit_applications: 50,
             limit_positions: 20,
-            deadline: Date.now(),
+            deadline: new Date(Date.now()).toISOString().replace('Z', ''),
             skillset: '',
             type: 'Full-Time',
             duration: 2,
@@ -128,13 +128,14 @@ export default class NewJob extends Component {
                         </Grid>
                         <Grid item xs={6} sm={3}>
                             <InputLabel>Deadline</InputLabel>
-                            <TextField className="form-control"
+                            <TextField
                                 variant="outlined"
+                                className="form-control"
                                 value={this.state.deadline}
                                 onChange={this.onChangeValue}
-                                required
                                 name="deadline"
-                                type="date"
+                                type="datetime-local"
+                                required
                             />
                         </Grid>
                         <Grid item xs={6} sm={3}>
@@ -147,6 +148,7 @@ export default class NewJob extends Component {
                                 >
                                     <MenuItem value={'Full-Time'}>Full Time</MenuItem>
                                     <MenuItem value={'Part-Time'}>Part Time</MenuItem>
+                                    <MenuItem value={'WFH'}>Work From Home</MenuItem>
                                 </Select>
                             </FormControl>
                         </Grid>
@@ -161,15 +163,22 @@ export default class NewJob extends Component {
                             />
                         </Grid>
                         <Grid item xs={3}>
-                            <InputLabel>Duration in months</InputLabel>
-                            <TextField className="form-control"
-                                variant="outlined"
-                                value={this.state.duration}
-                                onChange={this.onChangeValue}
-                                required
-                                name="duration"
-                                type="number"
-                            />
+                            <InputLabel>Duration</InputLabel>
+                            <FormControl className="form-group" variant="outlined">
+                                <Select
+                                    value={this.state.duration}
+                                    onChange={this.onChangeValue}
+                                    name="duration"
+                                >
+                                    <MenuItem value={6}>6 months</MenuItem>
+                                    <MenuItem value={5}>5 months</MenuItem>
+                                    <MenuItem value={4}>4 months</MenuItem>
+                                    <MenuItem value={3}>3 months</MenuItem>
+                                    <MenuItem value={2}>2 months</MenuItem>
+                                    <MenuItem value={1}>1 month</MenuItem>
+                                    <MenuItem value={0}>Indefinite</MenuItem>
+                                </Select>
+                            </FormControl>
                         </Grid>
                         <Grid item xs={12} sm={6}>
                             <InputLabel>Salary</InputLabel>
@@ -194,6 +203,7 @@ export default class NewJob extends Component {
                                         required
                                         name="limit_applications"
                                         type="number"
+                                        InputProps={{ inputProps: { min: this.state.limit_positions } }}
                                     />
                                 </Grid>
                                 <Grid item xs={6}>
@@ -206,6 +216,7 @@ export default class NewJob extends Component {
                                         required
                                         name="limit_positions"
                                         type="number"
+                                        InputProps={{ inputProps: { min: 0, max: this.state.limit_applications } }}
                                     />
                                 </Grid>
                             </Grid>

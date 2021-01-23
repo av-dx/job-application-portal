@@ -162,7 +162,7 @@ class ApplicantProfile extends Component {
                             size="large"
                             color="primary"
                             variant="contained"
-                            onClick={() => { window.location = '/editprofile' }}>
+                            onClick={() => { window.location = '/profile/edit' }}>
                             Edit Profile
                             </Button>
                     </Grid>

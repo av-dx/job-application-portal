@@ -19,8 +19,8 @@ router.get("/", function (req, res) {
 });
 
 // Getting all applications for an applicant
-router.get("/postedapplications", function (req, res) {
-    Applicant.findOne({ email: req.body.email }).populate("applications").then(applicant => {
+router.post("/postedapplications", function (req, res) {
+    Applicant.findOne({ email: req.body.email }).populate({ path: "applications", populate: { path: "_job", model: "Jobs" } }).then(applicant => {
         if (!applicant) {
             return res.status(404).send({
                 error: "Email not found",
@@ -33,7 +33,12 @@ router.get("/postedapplications", function (req, res) {
                 });
             }
             else {
-                res.json(applicant.applications);
+                applicant.applications.forEach((appl, index) => {
+                    applicant.applications[index]._job.applications = undefined;
+                    applicant.applications[index]._job.count = undefined;
+                });
+                console.log(applicant.applications);
+                res.status(200).send(applicant.applications);
             }
         }
     });
@@ -92,6 +97,27 @@ router.post("/register", (req, res) => {
         /* TODO: Useless date ? */
         date: Date.now()
     });
+
+    errMsg = "";
+
+    newApplicant.education.forEach(edu => {
+        if ((edu.endYear != '') && (edu.endYear != undefined) && (edu.endYear < edu.startYear))
+            errMsg += "End Year cannot be less than the start year! ";
+    })
+    var pattern = /^[a-zA-Z0-9\-_]+(\.[a-zA-Z0-9\-_]+)*@[a-z0-9]+(\-[a-z0-9]+)*(\.[a-z0-9]+(\-[a-z0-9]+)*)*\.[a-z]{2,4}$/;
+    if (!(pattern.test(newApplicant.email))) {
+        errMsg += "Invalid email format! ";
+    }
+
+    if (errMsg != "") {
+        return res.status(400).send({ error: "Form Validation Failed! " + errMsg });
+    }
+
+
+    if (errMsg != "") {
+        return res.status(400).send({ error: "Form Validation Failed! " + errMsg });
+    }
+
 
     newApplicant.save()
         .then(applicant => {

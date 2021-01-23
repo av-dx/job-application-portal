@@ -16,11 +16,13 @@ import RecruiterDashboard from './components/Users/RecruiterDashboard';
 import NewJob from './components/Users/NewJob';
 import NewApplication from './components/Users/NewApplication';
 import RecruiterApplicationsDashboard from './components/Users/RecruiterApplicationsDashboard';
+import ApplicantApplicationsDashboard from './components/Users/ApplicantApplicationsDashboard';
+import RecruiterEmployeesDashboard from './components/Users/RecruiterEmployeesDashboard';
 
 function App() {
   return (
     <Router>
-      <div className="container px-0">
+      <div className="w-75 mx-auto">
         <Navbar />
         <br />
         <Route path="/" exact component={Home} />
@@ -31,6 +33,8 @@ function App() {
         <Route path="/dashboard" component={(localStorage.getItem("type") == "recruiter") ? RecruiterDashboard : ApplicantDashboard} />
         <Route path="/job/create" exact component={NewJob} />
         <Route path="/job/applications" exact component={RecruiterApplicationsDashboard} />
+        <Route path="/recruiter/employees" exact component={RecruiterEmployeesDashboard} />
+        <Route path="/applicant/applications" exact component={ApplicantApplicationsDashboard} />
         <Route path="/application/create" component={NewApplication} />
       </div>
     </Router>

@@ -3,31 +3,26 @@ const Schema = mongoose.Schema;
 
 // Create Schema
 const JobSchema = new Schema({
-	title: { type: String, required: true },
-	recruitername: { type: String, required: true },
+	title: { type: String, required: true, minlength: 1 },
+	recruitername: { type: String, required: true, minlength: 1 },
 	/* TODO: Email integrity check? */
-	recruiteremail: { type: String, required: true },
+	recruiteremail: { type: String, required: true, match: /^[a-zA-Z0-9\-_]+(\.[a-zA-Z0-9\-_]+)*@[a-z0-9]+(\-[a-z0-9]+)*(\.[a-z0-9]+(\-[a-z0-9]+)*)*\.[a-z]{2,4}$/ },
 	count: {
-		applications: { type: Number, required: true },
-		positions: {type: Number, required: true}
+		applications: { type: Number, required: true, min: 0 },
+		positions: { type: Number, required: true, min: 0 }
 	},
 	limit: {
-		applications: { type: Number, required: true },
-		positions: { type: Number, required: true }
+		applications: { type: Number, required: true, min: 0 },
+		positions: { type: Number, required: true, min: 0 }
 	},
-	/* TODO: Verify Date format. What is Day-23, Mmonth-June , etc.? */
 	postedOn: { type: Date, required: true },
 	deadline: { type: Date, required: true },
-	/* TODO: Limit to Languages? */
 	skillset: [String],
-	/* TODO: Enumerators ? */
-	type: { type: String, required: true },
-	/* TODO: Limit to 1-6 months, and 0 indefinite */
-	duration: { type: Number, required: true },
-	/* TODO: Salary positive check */
-	salary: { type: Number, required: true },
-	/* TODO: Dynamic ..... */
-	rating: { type: Number, required: false },
+	type: { type: String, required: true, enum: ['Full-Time', 'Part-Time', 'WFH'] },
+	duration: { type: Number, required: true, min: 0, max: 6 },
+	salary: { type: Number, required: true, min: 0 },
+	rating: { type: Number, required: false, min: 0 },
+	ratedBy: { type: Number, required: false, min: 0 },
 	applications: [{ type: Schema.Types.ObjectId, ref: 'Application' }]
 });
 

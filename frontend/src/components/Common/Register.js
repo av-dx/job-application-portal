@@ -204,9 +204,8 @@ export default class Register extends Component {
                     window.location = '/';
                 })
                 .catch(err => {
-                    if (err.response) {
-                        console.log(err.response.data)
-                        alert(err.response.data.error)
+                    if (err) {
+                        alert(err)
                     }
                 })
 

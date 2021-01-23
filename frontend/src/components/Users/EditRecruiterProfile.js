@@ -115,7 +115,15 @@ class EditRecruiterProfile extends Component {
                                 />
                             </Grid>
                             <Grid item xs={6}>
-
+                                <TextField
+                                    variant="outlined"
+                                    value={this.state.contact}
+                                    name="contact"
+                                    label="Contact"
+                                    onChange={this.onChangeValue}
+                                    className="form-control"
+                                    required
+                                />
                             </Grid>
                             <Grid item xs={6}>
                             </Grid>

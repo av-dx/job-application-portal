@@ -78,6 +78,7 @@ router.post("/create", (req, res) => {
 
 function hireApplicant(request) {
     const applicantId = request.id;
+    const jobId = request.jobid;
     const recruiterEmail = request.email;
     const recruiterKey = request.password;
     Recruiter.findOne({ email: recruiterEmail }).then(recruiter => {
@@ -93,13 +94,26 @@ function hireApplicant(request) {
                 });
             }
             else {
+                Jobs.findById(request.jobid).then(job => {
+                    if (!job) {
+                        console.log({
+                            error: "Job not found",
+                        });
+                    }
+                    else if (job.recruiteremail != recruiterEmail) {
+                        console.log({ error: "This job is not for this recruiter" });
+                    }
+                    else {
+
+                    }
+                })
                 Applicant.findById(request.id).then(applicant => {
                     if (!applicant) {
                         console.log({ error: "Applicant not found" });
                     }
                     else {
-                        recruiter.employees.push(request.id); // imp line!!!!
-
+                        recruiter.employees.push({ _applicant: applicantId, _job: jobId, doj: Date.now() }); // imp line!!!!
+                        applicant.doj = Date.now();
                         applicant.applications.forEach(app => {
                             Application.findById(app).then((appl) => {
                                 Jobs.findOne({ _id: appl._job }).then(job => {
@@ -147,6 +161,14 @@ function hireApplicant(request) {
                                 })
                             })
                         });
+                        applicant.save(function (err, done) {
+                            if (err) {
+                                console.log(err);
+                            }
+                            else {
+                                console.log({ error: "Employee has been hired!" });
+                            }
+                        })
                         recruiter.save(function (err, done) {
                             if (err) {
                                 console.log(err);
@@ -206,7 +228,7 @@ router.post("/:id/:status", (req, res) => {
                                 }
                                 else if (appl.status == "Accepted") {
                                     job.count.positions += 1;
-                                    hireApplicant({ id: appl._applicant, email: email, password: password });
+                                    hireApplicant({ id: appl._applicant, email: email, password: password, jobid: job._id });
                                 }
                                 appl.save(function (err, done) {
                                     if (err) {
