@@ -20,7 +20,7 @@ router.get("/", function (req, res) {
 
 // NOTE: Below functions are just sample to show you API endpoints working, for the assignment you may need to edit them
 
-router.post("/postapplication", (req, res) => {
+router.post("/create", (req, res) => {
     const jobid = req.body.jobid;
     const email = req.body.applicantemail;
     const applicantKey = req.body.applicantKey;
@@ -30,45 +30,203 @@ router.post("/postapplication", (req, res) => {
                 error: "Job doesn't exist!",
             });
         }
+        else {
+            Applicant.findOne({ email: email }).then(applicant => {
+                // Check if user email exists
+                if (!applicant) {
+                    return res.status(404).json({
+                        error: "Applicant doesn't exist!",
+                    });
+                }
+                else {
+                    //res.send("Email Found");
+                    if (applicant.password != applicantKey) {
+                        return res.status(404).json({
+                            error: "Incorrect Password!",
+                        });
+                    }
+                    else {
+                        const newApplication = new Application({
+                            _applicant: applicant._id,
+                            _job: jobid,
+                            //_recruiter: job.
+                            sop: req.body.sop,
+                            status: "Submitted",
+                            /* TODO: Verify Date format. What is Day-23, Mmonth-June , etc.? */
+                            postedOn: Date.now()
+                        });
+                        newApplication.save(function (err, appl) {
+                            if (err) {
+                                console.log(err);
+                            }
+                            else {
+                                applicant.applications.push(appl._id);
+                                job.applications.push(appl._id);
+                                job.count.applications += 1;
+                                job.save();
+                                applicant.save();
+                                res.status(200).json(appl);
+                            }
+                        });
+                    }
+                }
+            });
+        }
     });
-    Applicant.findOne({ email: email }).then(applicant => {
-        // Check if user email exists
-        if (!applicant) {
-            return res.status(404).json({
-                error: "Applicant doesn't exist!",
+
+});
+
+function hireApplicant(request) {
+    const applicantId = request.id;
+    const recruiterEmail = request.email;
+    const recruiterKey = request.password;
+    Recruiter.findOne({ email: recruiterEmail }).then(recruiter => {
+        if (!recruiter) {
+            console.log({
+                error: "Email not found",
             });
         }
         else {
-            //res.send("Email Found");
-            if (applicant.password != applicantKey) {
-                return res.status(404).json({
-                    error: "Incorrect Password!",
+            if (recruiter.password != recruiterKey) {
+                console.log({
+                    error: "Password Incorrect",
                 });
             }
             else {
-                const newApplication = new Application({
-                    _applicant: applicant._id,
-                    _job: jobid,
-                    //_recruiter: job.
-                    sop: req.body.sop,
-                    status: "Submitted",
-                    /* TODO: Verify Date format. What is Day-23, Mmonth-June , etc.? */
-                    postedOn: Date.now()
-                });
-                newApplication.save(function (err, appl) {
-                    if (err) {
-                        console.log(err);
+                Applicant.findById(request.id).then(applicant => {
+                    if (!applicant) {
+                        console.log({ error: "Applicant not found" });
                     }
                     else {
-                        applicant.applications.push(appl._id);
-                        applicant.save();
-                        res.status(200).json(appl);
+                        recruiter.employees.push(request.id); // imp line!!!!
+
+                        applicant.applications.forEach(app => {
+                            Application.findById(app).then((appl) => {
+                                Jobs.findOne({ _id: appl._job }).then(job => {
+                                    if (!job) {
+                                        console.log({
+                                            error: "Job doesn't exist!",
+                                        });
+                                    }
+                                    else {
+                                        Recruiter.findOne({ email: job.recruiteremail }).then(recruiter => {
+                                            // Check if user email exists
+                                            if (!recruiter) {
+                                                console.log({
+                                                    error: "Recruiter doesn't exist!",
+                                                });
+                                            }
+                                            else if (appl.status != "Accepted") {
+                                                appl.status = "Rejected";
+                                                const index = job.applications.indexOf(appl._id);
+                                                if (index > -1) {
+                                                    console.log(job.applications);
+                                                    job.applications.splice(index, 1);
+                                                    job.count.applications -= 1;
+                                                    console.log(job.applications);
+                                                }
+                                                appl.save(function (err, done) {
+                                                    if (err) {
+                                                        console.log(err);
+                                                    }
+                                                    else {
+                                                        console.log({ error: "Employee has been hired!" });
+                                                    }
+                                                })
+                                                job.save(function (err, done) {
+                                                    if (err) {
+                                                        console.log(err);
+                                                    }
+                                                    else {
+                                                        console.log({ error: "Employee has been hired!" });
+                                                    }
+                                                })
+                                            }
+                                        })
+                                    }
+                                })
+                            })
+                        });
+                        recruiter.save(function (err, done) {
+                            if (err) {
+                                console.log(err);
+                            }
+                            else {
+                                console.log({ error: "Employee has been hired!" });
+                            }
+                        })
                     }
-                });
+                })
             }
         }
     });
-});
+}
+
+
+router.post("/:id/:status", (req, res) => {
+    const email = req.body.email;
+    const password = req.body.password;
+
+    Application.findById(req.params.id).then((appl) => {
+        if (!appl) {
+            return res.status(404).send({ error: "Application ID invalid!" });
+        }
+        else {
+            Jobs.findOne({ _id: appl._job }).then(job => {
+                if (!job) {
+                    return res.status(404).json({
+                        error: "Job doesn't exist!",
+                    });
+                }
+                else {
+                    Recruiter.findOne({ email: email }).then(recruiter => {
+                        // Check if user email exists
+                        if (!recruiter) {
+                            return res.status(404).json({
+                                error: "Recruiter doesn't exist!",
+                            });
+                        }
+                        else if (recruiter.password != password) {
+                            return res.status(404).json({
+                                error: "Incorrect Password!",
+                            });
+                        }
+                        else {
+                            if (
+                                ((req.params.status == "Shortlist") && (appl.status == "Submitted")) ||
+                                ((req.params.status == "Accept") && (appl.status == "Shortlisted")) ||
+                                ((req.params.status == "Reject") && (appl.status != "Accepted"))) {
+                                appl.status = req.params.status.toString() + "ed";
+                                if (appl.status == "Rejected") {
+                                    const index = job.applications.indexOf(appl._id);
+                                    if (index > -1) {
+                                        job.applications.splice(index, 1);
+                                        job.count.applications -= 1;
+                                    }
+                                }
+                                else if (appl.status == "Accepted") {
+                                    job.count.positions += 1;
+                                    hireApplicant({ id: appl._applicant, email: email, password: password });
+                                }
+                                appl.save(function (err, done) {
+                                    if (err) {
+                                        console.log(err);
+                                    }
+                                    else {
+                                        return res.status(200).send({ error: "Application has been " + req.params.status + "ed!" })
+                                    }
+                                })
+                            }
+                            else {
+                                return res.status(400).send({ error: "This application cannot be changed from " + appl.status + " to " + req.params.status + " !" });
+                            }
+                        }
+                    })
+                }
+            })
+        }
+    })
+})
 
 module.exports = router;
 

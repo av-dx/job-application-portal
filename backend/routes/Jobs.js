@@ -5,6 +5,8 @@ var router = express.Router();
 // Load User model
 const Job = require("../models/Jobs");
 const Recruiter = require("../models/Recruiter");
+const Applicant = require("../models/Applicant");
+const Application = require("../models/Application");
 
 // GET request 
 // Getting all the users
@@ -19,18 +21,39 @@ router.get("/", function (req, res) {
 });
 
 // Getting all the users
-router.get("/:id/applications", function (req, res) {
-    Job.findById(req.params.id).then(job => {
-        if (!job) {
-            return res.status(404).json({
-                error: "Job doesn't exist!",
-            });
-        }
-        else {
-            job.populate('applications');
-            return res.json(job.applications);
-        }
-    });
+router.post("/:id/applications", function (req, res) {
+    const recruiterKey = req.body.password;
+    const email = req.body.email;
+
+    Job.findById(req.params.id).populate({ path: 'applications', model: 'Application', populate: { path: '_applicant', model: 'Applicants' } })
+        .then(job => {
+            if (!job) {
+                return res.status(404).send({
+                    error: "Job doesn't exist!",
+                });
+            }
+            else {
+                if (job.recruiteremail == email) {
+                    Recruiter.findOne({ email: email }).then(owner => {
+                        if (!owner) {
+                            // How did we get here?
+                            res.status(500).send({ error: "This Job doesn't belong to anybody!" });
+                        }
+                        else {
+                            if (owner.password != recruiterKey) {
+                                res.status(400).send({ error: "You are not authorised [Wrong Password]!" });
+                            }
+                            else {
+                                res.status(200).send({ array: job.applications });
+                            }
+                        }
+                    });
+                }
+                else {
+                    res.status(400).json({ error: "You are not authorised!" });
+                }
+            }
+        });
 });
 
 // NOTE: Below functions are just sample to show you API endpoints working, for the assignment you may need to edit them
@@ -60,7 +83,7 @@ router.post("/postjob", (req, res) => {
                     /* TODO: Email integrity check? */
                     recruitername: recruiter.name,
                     recruiteremail: recruiter.email,
-                    count: { applications: 0 },
+                    count: { applications: 0, positions: 0 },
                     limit: req.body.limit,
                     /* TODO: Verify Date format. What is Day-23, Mmonth-June , etc.? */
                     postedOn: Date.now(),
@@ -139,6 +162,60 @@ router.post("/:id/edit", (req, res) => {
             }
         });
 });
+
+
+router.post("/:id/addapplication", (req, res) => {
+    const applicantKey = req.body.password;
+    const email = req.body.email;
+    const application = req.body.application;
+    if (application) {
+        application.populate("_applicant");
+    }
+    else {
+        return res.status(400).send({ error: "No application given" });
+    }
+
+    Job.findById(req.params.id)
+        .then(job => {
+            if (!job) {
+                return res.status(404).send({
+                    error: "Job doesn't exist!",
+                });
+            }
+            else {
+                if (application._applicant.email == email) {
+                    Applicant.findOne({ email: email }).then(owner => {
+                        if (!owner) {
+                            // How did we get here?
+                            res.status(500).send({ error: "This Application doesn't belong to anybody!" });
+                        }
+                        else {
+                            if (owner.password != applicantKey) {
+                                res.status(400).send({ error: "You are not authorised [Wrong Password]!" });
+                            }
+                            else {
+                                job.count.applications += 1;
+                                job.application.push(application._id);
+
+                                job.save(function (err, done) {
+                                    if (err) {
+                                        res.status(400).send({ error: "Couldn't edit job : " + err });
+                                    }
+                                    else {
+                                        res.status(200).send({ error: "Application successfully added!" });
+                                    }
+                                })
+                            }
+                        }
+                    });
+                }
+                else {
+                    res.status(400).json({ error: "You are not authorised!" });
+                }
+            }
+        });
+});
+
 
 router.delete("/:id", (req, res) => {
     const recruiterKey = req.body.password;

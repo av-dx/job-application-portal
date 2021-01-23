@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Route, Link } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css"
 
 import UsersList from './components/Users/UsersList'
-import JobsList from './components/Users/JobsList'
+import ApplicantDashboard from './components/Users/ApplicantDashboard'
 import Home from './components/Common/Home'
 import Register from './components/Common/Register'
 import Login from './components/Common/Login'
@@ -14,23 +14,24 @@ import RecruiterProfile from './components/Users/RecruiterProfile'
 import EditRecruiterProfile from './components/Users/EditRecruiterProfile'
 import RecruiterDashboard from './components/Users/RecruiterDashboard';
 import NewJob from './components/Users/NewJob';
+import NewApplication from './components/Users/NewApplication';
+import RecruiterApplicationsDashboard from './components/Users/RecruiterApplicationsDashboard';
 
 function App() {
   return (
     <Router>
-      <div className="container">
+      <div className="container px-0">
         <Navbar />
         <br />
         <Route path="/" exact component={Home} />
-        <Route path="/users" exact component={UsersList} />
-        <Route path="/jobs" exact component={JobsList} />
         <Route path="/register" component={Register} />
         <Route path="/login" component={Login} />
-        <Route path="/profile" component={(localStorage.getItem("type") == "recruiter") ? RecruiterProfile : ApplicantProfile} />
-        <Route path="/editprofile" component={(localStorage.getItem("type") == "recruiter") ? EditRecruiterProfile : EditApplicantProfile} />
-        {/* <Route path="/dashboard" component={(localStorage.getItem("type") == "recruiter") ? RecruiterDashboard : ApplicantDashboard} /> */}
-        <Route path="/dashboard" component={RecruiterDashboard} />
-        <Route path="/newjob" component={NewJob} />
+        <Route path="/profile" exact component={(localStorage.getItem("type") == "recruiter") ? RecruiterProfile : ApplicantProfile} />
+        <Route path="/profile/edit" exact component={(localStorage.getItem("type") == "recruiter") ? EditRecruiterProfile : EditApplicantProfile} />
+        <Route path="/dashboard" component={(localStorage.getItem("type") == "recruiter") ? RecruiterDashboard : ApplicantDashboard} />
+        <Route path="/job/create" exact component={NewJob} />
+        <Route path="/job/applications" exact component={RecruiterApplicationsDashboard} />
+        <Route path="/application/create" component={NewApplication} />
       </div>
     </Router>
   );

@@ -18,6 +18,7 @@ import InputAdornment from "@material-ui/core/InputAdornment";
 import EditIcon from '@material-ui/icons/Edit';
 import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
 import DoneIcon from '@material-ui/icons/Done';
+import { Link } from 'react-router-dom';
 
 import SearchIcon from "@material-ui/icons/Search";
 import ArrowUpwardIcon from '@material-ui/icons/ArrowUpward';
@@ -102,99 +103,110 @@ class RecruiterDashboard extends Component {
     render() {
         return (
             <div>
-                <Grid item xs={12}>
-                    <Paper>
-                        <Table size="small">
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell>Title</TableCell>
-                                    <TableCell>Date of posting</TableCell>
-                                    <TableCell>Applications (Submitted/Max)</TableCell>
-                                    <TableCell>Number of positions</TableCell>
-                                    <TableCell>Deadline</TableCell>
-                                    <TableCell>Actions</TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {this.state.jobs.map((job, ind) => (
-                                    <TableRow key={ind}>
-                                        <TableCell>{job.title}</TableCell>
-                                        <TableCell>{new Date(job.postedOn).toLocaleDateString()}</TableCell>
-                                        <TableCell>
-                                            {job.count.applications}/
-                                            {(this.state.editing == ind) ?
-                                                <TextField
-                                                    size="small"
-                                                    variant="outlined"
-                                                    className="form-control"
-                                                    value={this.state.newMaxApplications}
-                                                    onChange={this.onChangeValue}
-                                                    name="newMaxApplications"
-                                                    type="number"
-                                                    required
-                                                />
-                                                :
-                                                job.limit.applications
-                                            }
-                                        </TableCell>
-                                        <TableCell>
-                                            {(this.state.editing == ind) ?
-                                                <TextField
-                                                    variant="outlined"
-                                                    size="small"
-                                                    className="form-control"
-                                                    value={this.state.newMaxPositions}
-                                                    onChange={this.onChangeValue}
-                                                    name="newMaxPositions"
-                                                    type="number"
-                                                    required
-                                                />
-                                                :
-                                                job.limit.positions
-                                            }
-                                        </TableCell>
-                                        <TableCell>
-                                            {(this.state.editing == ind) ?
-                                                <TextField
-                                                    variant="outlined"
-                                                    size="small"
-                                                    className="form-control"
-                                                    value={this.state.newDeadline.toString().replace('Z', '')}
-                                                    onChange={this.onChangeValue}
-                                                    name="newDeadline"
-                                                    type="datetime-local"
-                                                    required
-                                                />
-                                                :
-                                                new Date(job.deadline).toLocaleString()
-                                            }
-                                        </TableCell>
-                                        <TableCell>
-                                            {(this.state.editing == ind) ?
-                                                <Button color="primary" onClick={this.onEditJob.bind(this, job._id, ind)}>
-                                                    <DoneIcon></DoneIcon>
-                                                </Button>
-                                                :
-                                                <Button color="primary" onClick={() => {
-                                                    this.setState({
-                                                        editing: ind,
-                                                        newDeadline: job.deadline,
-                                                        newMaxPositions: job.limit.positions,
-                                                        newMaxApplications: job.limit.applications
-                                                    })
-                                                }}>
-                                                    <EditIcon></EditIcon>
-                                                </Button>
-                                            }
-                                            <Button color="secondary" onClick={this.onDeleteJob.bind(this, job._id, ind)}>
-                                                <DeleteForeverIcon></DeleteForeverIcon>
-                                            </Button>
-                                        </TableCell>
+                <Grid container spacing={6}>
+                    <Grid item xs={12}>
+                        <Paper>
+                            <Table size="small">
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell>Title</TableCell>
+                                        <TableCell>Date of posting</TableCell>
+                                        <TableCell>Applications (Submitted/Max)</TableCell>
+                                        <TableCell>Number of positions</TableCell>
+                                        <TableCell>Deadline</TableCell>
+                                        <TableCell align="center">Actions</TableCell>
                                     </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    </Paper>
+                                </TableHead>
+                                <TableBody>
+                                    {this.state.jobs.map((job, ind) => (
+                                        <TableRow key={ind}>
+                                            <TableCell><Link to={{ pathname: "/job/applications", state: { job: job } }} >{job.title}</Link></TableCell>
+                                            <TableCell>{new Date(job.postedOn).toLocaleDateString()}</TableCell>
+                                            <TableCell>
+                                                {job.count.applications}/
+                                            {(this.state.editing == ind) ?
+                                                    <TextField
+                                                        size="small"
+                                                        variant="outlined"
+                                                        className="form-control"
+                                                        value={this.state.newMaxApplications}
+                                                        onChange={this.onChangeValue}
+                                                        name="newMaxApplications"
+                                                        type="number"
+                                                        required
+                                                    />
+                                                    :
+                                                    job.limit.applications
+                                                }
+                                            </TableCell>
+                                            <TableCell>
+                                                {job.count.positions}/
+                                            {(this.state.editing == ind) ?
+                                                    <TextField
+                                                        variant="outlined"
+                                                        size="small"
+                                                        className="form-control"
+                                                        value={this.state.newMaxPositions}
+                                                        onChange={this.onChangeValue}
+                                                        name="newMaxPositions"
+                                                        type="number"
+                                                        required
+                                                    />
+                                                    :
+                                                    job.limit.positions
+                                                }
+                                            </TableCell>
+                                            <TableCell>
+                                                {(this.state.editing == ind) ?
+                                                    <TextField
+                                                        variant="outlined"
+                                                        size="small"
+                                                        className="form-control"
+                                                        value={this.state.newDeadline.toString().replace('Z', '')}
+                                                        onChange={this.onChangeValue}
+                                                        name="newDeadline"
+                                                        type="datetime-local"
+                                                        required
+                                                    />
+                                                    :
+                                                    new Date(job.deadline).toLocaleString()
+                                                }
+                                            </TableCell>
+                                            <TableCell align="center">
+                                                {(this.state.editing == ind) ?
+                                                    <Button color="primary" onClick={this.onEditJob.bind(this, job._id, ind)}>
+                                                        <DoneIcon></DoneIcon>
+                                                    </Button>
+                                                    :
+                                                    <Button color="primary" onClick={() => {
+                                                        this.setState({
+                                                            editing: ind,
+                                                            newDeadline: job.deadline,
+                                                            newMaxPositions: job.limit.positions,
+                                                            newMaxApplications: job.limit.applications
+                                                        })
+                                                    }}>
+                                                        <EditIcon></EditIcon>
+                                                    </Button>
+                                                }
+                                                <Button color="secondary" onClick={this.onDeleteJob.bind(this, job._id, ind)}>
+                                                    <DeleteForeverIcon></DeleteForeverIcon>
+                                                </Button>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </Paper>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={() => { window.location = '/job/create' }}>
+                            Create a new Job
+                        </Button>
+                    </Grid>
                 </Grid>
             </div >
         )

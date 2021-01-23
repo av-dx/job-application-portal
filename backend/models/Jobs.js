@@ -8,7 +8,8 @@ const JobSchema = new Schema({
 	/* TODO: Email integrity check? */
 	recruiteremail: { type: String, required: true },
 	count: {
-		applications: { type: Number, required: true }
+		applications: { type: Number, required: true },
+		positions: {type: Number, required: true}
 	},
 	limit: {
 		applications: { type: Number, required: true },

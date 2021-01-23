@@ -58,7 +58,7 @@ export default class Register extends Component {
     onAddEducation() {
         this.setState({
             education: [...this.state.education, {
-                institute: '', startYear: '', endYear: ''
+                institute: '', startYear: 2000 , endYear: ''
             }]
         });
     }
@@ -159,6 +159,7 @@ export default class Register extends Component {
                                                 id={ind}
                                                 required
                                                 type="number"
+                                                InputProps={{ inputProps: { min: 1000, max: 2021 } }}
                                             />
                                         </Grid>
                                         <Grid item xs={12} sm={3}>
@@ -170,6 +171,7 @@ export default class Register extends Component {
                                                 name="endYear"
                                                 type="number"
                                                 id={ind}
+                                                InputProps={{ inputProps: { min: 1000, max: 2050 } }}
                                             />
                                         </Grid>
                                     </Grid>

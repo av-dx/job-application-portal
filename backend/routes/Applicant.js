@@ -3,7 +3,8 @@ var router = express.Router();
 
 // Load User model
 const Applicant = require("../models/Applicant");
-const Application = require('../models/Application');
+const Recruiter = require("../models/Recruiter");
+const Application = require("../models/Application");
 
 // GET request 
 // Getting all the users
@@ -19,7 +20,7 @@ router.get("/", function (req, res) {
 
 // Getting all applications for an applicant
 router.get("/postedapplications", function (req, res) {
-    Applicant.findOne({ email: req.body.email }).populate('applications').then(applicant => {
+    Applicant.findOne({ email: req.body.email }).populate("applications").then(applicant => {
         if (!applicant) {
             return res.status(404).send({
                 error: "Email not found",
@@ -87,6 +88,7 @@ router.post("/register", (req, res) => {
         resume: [],
         profilepic: '',
         password: req.body.password,
+        applications: [],
         /* TODO: Useless date ? */
         date: Date.now()
     });
@@ -107,7 +109,7 @@ router.post("/login", (req, res) => {
     const email = req.body.email;
     const password = req.body.password;
     // Find user by email
-    Applicant.findOne({ email }).then(applicant => {
+    Applicant.findOne({ email: req.body.email }).populate("applications").then(applicant => {
         // Check if user email exists
         if (!applicant) {
             return res.status(404).send({
@@ -121,14 +123,15 @@ router.post("/login", (req, res) => {
             }
             else {
                 /* TODO: cleaner way to delete just one key */
-                res.status(200).json({
+                res.status(200).send({
                     name: applicant.name,
                     email: applicant.email,
                     education: applicant.education,
                     skills: applicant.skills,
                     rating: applicant.rating,
                     resume: applicant.resume,
-                    profilepic: applicant.profilepic
+                    profilepic: applicant.profilepic,
+                    applications: applicant.applications
                 });
             }
         }

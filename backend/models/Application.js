@@ -16,4 +16,4 @@ const ApplicationSchema = new Schema({
 	postedOn: { type: Date, required: true }
 });
 
-module.exports = Application = mongoose.model("Applications", ApplicationSchema);
+module.exports = Application = mongoose.model("Application", ApplicationSchema);

@@ -10,7 +10,7 @@ const RecruiterSchema = new Schema({
 	password: { type: String, required: true },
 	date: { type: Date, required: false },
 	jobs: [{ type: Schema.Types.ObjectId, ref: 'Jobs' }],
-	applications: [{ type: Schema.Types.ObjectId, ref: 'Application' }]
+	employees: [{ type: Schema.Types.ObjectId, ref: 'Applicants' }]
 });
 
 module.exports = Recruiter = mongoose.model("Recruiters", RecruiterSchema);
