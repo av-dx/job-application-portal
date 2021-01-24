@@ -1,206 +1,191 @@
-var express = require("express");
-var router = express.Router();
+const express = require('express');
+const router = express.Router();
 
 
-const Recruiter = require("../models/Recruiter");
-const Applicant = require("../models/Applicant");
-const Jobs = require("../models/Jobs");
+const Recruiter = require('../models/Recruiter');
+const Applicant = require('../models/Applicant');
 
 
-
-router.get("/", function (req, res) {
-    Recruiter.find(function (err, recruiters) {
-        if (err) {
-            console.log(err);
-        } else {
-            res.status(200).json(recruiters);
-        }
-    })
+router.get('/', function(req, res) {
+  Recruiter.find(function(err, recruiters) {
+    if (err) {
+      console.log(err);
+    } else {
+      res.status(200).json(recruiters);
+    }
+  });
 });
 
 
 /* TODO: Currently returns all jobs, see moodle asked by Mehul */
-router.post("/activejobs", function (req, res) {
-    Recruiter.findOne({ email: req.body.email }).populate("jobs").then(recruiter => {
+router.post('/activejobs', function(req, res) {
+  Recruiter.findOne({email: req.body.email}).populate('jobs')
+      .then((recruiter) => {
         if (!recruiter) {
-            return res.status(404).send({
-                error: "Invalid Recruiter Email",
+          return res.status(404).send({
+            error: 'Invalid Recruiter Email',
+          });
+        } else {
+          console.log(recruiter.jobs);
+          res.status(200).json(recruiter.jobs);
+        }
+      });
+});
+
+router.post('/employees', function(req, res) {
+  Recruiter.findOne({email: req.body.email})
+      .populate({
+        path: 'employees',
+        populate: [
+          {path: '_job', model: 'Jobs'},
+          {path: '_applicant', model: 'Applicants'},
+        ],
+      })
+      .then((recruiter) => {
+        if (!recruiter) {
+          return res.status(403).send({
+            error: 'Invalid Recruiter Email',
+          });
+        } else {
+          if (recruiter.password != req.body.password) {
+            return res.status(403).send({
+              error: 'Password Incorrect',
             });
+          } else {
+            const employees = [...recruiter.employees];
+            employees.forEach((emp, index) => {
+              employees[index]._applicant.password = undefined;
+              employees[index]._applicant.applications = undefined;
+            });
+
+            console.log(employees);
+            res.status(200).json(employees);
+          }
         }
-        else {
-            console.log(recruiter.jobs);
-            res.status(200).json(recruiter.jobs);
-        }
-    });
+      });
 });
 
-router.post("/employees", function (req, res) {
-    Recruiter.findOne({ email: req.body.email })
-        .populate({
-            path: "employees",
-            populate: [{ path: '_job', model: "Jobs" }, { path: '_applicant', model: "Applicants" }],
-        })
-        .then(recruiter => {
-            if (!recruiter) {
-                return res.status(403).send({
-                    error: "Invalid Recruiter Email",
-                });
-            }
-            else {
-                if (recruiter.password != req.body.password) {
-                    return res.status(403).send({
-                        error: "Password Incorrect",
-                    });
-                }
-                else {
-                    var employees = [...recruiter.employees]
-                    employees.forEach((emp, index) => {
-                        employees[index]._applicant.password = undefined;
-                        employees[index]._applicant.applications = undefined;
-                    });
-
-                    console.log(employees);
-                    res.status(200).json(employees);
-                }
-            }
-        });
-});
-
-router.post('/rate/:id', function (req, res) {
-    Recruiter.findOne({ email: req.body.email })
-        .then(recruiter => {
-            if (!recruiter) {
+router.post('/rate/:id', function(req, res) {
+  Recruiter.findOne({email: req.body.email})
+      .then((recruiter) => {
+        if (!recruiter) {
+          return res.status(404).send({
+            error: 'Invalid Recruiter Email',
+          });
+        } else {
+          if (recruiter.password != req.body.password) {
+            return res.status(403).send({
+              error: 'Password Incorrect',
+            });
+          } else {
+            Applicant.findById(req.params.id).then((applicant) => {
+              if (!applicant) {
                 return res.status(404).send({
-                    error: "Invalid Recruiter Email",
+                  error: 'Applicant not found',
                 });
-            }
-            else {
-                if (recruiter.password != req.body.password) {
-                    return res.status(403).send({
-                        error: "Password Incorrect",
-                    });
-                }
-                else {
-                    Applicant.findById(req.params.id).then(applicant => {
-                        if (!applicant) {
-                            return res.status(404).send({
-                                error: "Applicant not found",
-                            });
-                        }
-                        else {
-                            var arr = recruiter.employees.map(a => a._applicant);
-                            if (arr.includes(req.params.id)) {
-                                applicant.rating = (req.body.rating) % 6;
-                                applicant.save(function (err, done) {
-                                    if (err) {
-                                        return res.status(400).send({ error: "Unable to rate applicant : " + err });
-                                    }
-                                    else {
-                                        return res.status(200).send({ error: "You gave the applicant : " + (req.body.rating % 6) });
-                                    }
-                                })
-                            }
-                            else {
-                                return res.status(403).send({ error: "This person is not an employee of your company!" });
-                            }
-
-                        }
-
-                    });
-                }
-            }
-        });
-})
-
-
-router.post("/edit", function (req, res) {
-    Recruiter.findOne({ email: req.body.curemail }).then(recruiter => {
-        if (!recruiter) {
-            return res.status(404).send({
-                error: "Email not found",
-            });
-        }
-        else {
-            if (recruiter.password != req.body.password) {
-                return res.status(403).send({
-                    error: "Password Incorrect",
-                });
-            }
-            else {
-                recruiter.name = req.body.name
-                recruiter.email = req.body.email
-                recruiter.password = req.body.password
-                recruiter.contact = req.body.contact
-                recruiter.bio = req.body.bio
-
-                recruiter.save(function (err, done) {
+              } else {
+                const arr = recruiter.employees.map((a) => a._applicant);
+                if (arr.includes(req.params.id)) {
+                  applicant.rating = (req.body.rating) % 6;
+                  applicant.save(function(err, done) {
                     if (err) {
-                        return res.status(400).send({ error: "Couldn't edit recruiter : " + err });
+                      return res.status(400)
+                          .send({error: 'Unable to rate applicant : ' + err});
+                    } else {
+                      return res.status(200)
+                          // eslint-disable-next-line max-len
+                          .send({error: 'You gave the applicant : ' + (req.body.rating % 6)});
                     }
-                    else {
-                        return res.status(200).send({ error: "Recruiter info Updated!" });
-                    }
-                })
-            }
-        }
-    });
-});
-
-
-
-
-
-
-
-router.post("/register", (req, res) => {
-    const newRecruiter = new Recruiter({
-        name: req.body.name,
-        email: req.body.email,
-        contact: req.body.contact,
-        bio: req.body.bio,
-        password: req.body.password,
-        /* TODO: Useless date ? */
-        date: Date.now()
-    });
-
-    newRecruiter.save()
-        .then(recruiter => {
-            res.status(201).json(recruiter);
-        })
-        .catch(err => {
-            res.status(400).send(err);
-        });
-});
-
-
-
-router.post("/login", (req, res) => {
-    const email = req.body.email;
-    const password = req.body.password;
-   
-    Recruiter.findOne({ email }).then(recruiter => {
-       
-        if (!recruiter) {
-            return res.status(404).json({
-                error: "Email not found",
+                  });
+                } else {
+                  return res.status(403)
+                      // eslint-disable-next-line max-len
+                      .send({error: 'This person is not an employee of your company!'});
+                }
+              }
             });
+          }
         }
-        else {
-           
-            if (recruiter.password != password) {
-                res.status(403).send({ error: "Password Incorrect" });
-            }
-            else {
-                /* TODO: cleaner way to delete just one key */
-                res.status(200).json({
-                    name: recruiter.name,
-                    email: recruiter.email,
-                    contact: recruiter.contact,
-                    bio: recruiter.bio
-                });
-            }
-        }
-    });
+      });
+});
+
+
+router.post('/edit', function(req, res) {
+  Recruiter.findOne({email: req.body.curemail}).then((recruiter) => {
+    if (!recruiter) {
+      return res.status(404).send({
+        error: 'Email not found',
+      });
+    } else {
+      if (recruiter.password != req.body.password) {
+        return res.status(403).send({
+          error: 'Password Incorrect',
+        });
+      } else {
+        recruiter.name = req.body.name;
+        recruiter.email = req.body.email;
+        recruiter.password = req.body.password;
+        recruiter.contact = req.body.contact;
+        recruiter.bio = req.body.bio;
+
+        recruiter.save(function(err, done) {
+          if (err) {
+            // eslint-disable-next-line max-len
+            return res.status(400).send({error: 'Couldn\'t edit recruiter : ' + err});
+          } else {
+            return res.status(200).send({error: 'Recruiter info Updated!'});
+          }
+        });
+      }
+    }
+  });
+});
+
+
+router.post('/register', (req, res) => {
+  const newRecruiter = new Recruiter({
+    name: req.body.name,
+    email: req.body.email,
+    contact: req.body.contact,
+    bio: req.body.bio,
+    password: req.body.password,
+    /* TODO: Useless date ? */
+    date: Date.now(),
+  });
+
+  newRecruiter.save()
+      .then((recruiter) => {
+        res.status(201).json(recruiter);
+      })
+      .catch((err) => {
+        res.status(400).send(err);
+      });
+});
+
+
+router.post('/login', (req, res) => {
+  const email = req.body.email;
+  const password = req.body.password;
+
+  Recruiter.findOne({email}).then((recruiter) => {
+    if (!recruiter) {
+      return res.status(404).json({
+        error: 'Email not found',
+      });
+    } else {
+      if (recruiter.password != password) {
+        res.status(403).send({error: 'Password Incorrect'});
+      } else {
+        /* TODO: cleaner way to delete just one key */
+        res.status(200).json({
+          name: recruiter.name,
+          email: recruiter.email,
+          contact: recruiter.contact,
+          bio: recruiter.bio,
+        });
+      }
+    }
+  });
 });
 
 module.exports = router;
