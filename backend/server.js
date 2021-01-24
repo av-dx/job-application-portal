@@ -7,8 +7,6 @@ const PORT = 4000;
 const DB_NAME = "jobportal"
 
 // routes
-var testAPIRouter = require("./routes/testAPI");
-var UserRouter = require("./routes/Users");
 var ApplicantRouter = require("./routes/Applicant");
 var RecruiterRouter = require("./routes/Recruiter");
 var JobRouter = require("./routes/Jobs");
@@ -27,8 +25,6 @@ connection.once('open', function() {
 })
 
 // setup API endpoints
-app.use("/testAPI", testAPIRouter);
-app.use("/user", UserRouter);
 app.use("/applicant", ApplicantRouter);
 app.use("/application", ApplicationRouter);
 app.use("/recruiter", RecruiterRouter);
