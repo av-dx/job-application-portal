@@ -13,7 +13,7 @@ router.get("/", function (req, res) {
         if (err) {
             console.log(err);
         } else {
-            res.json(applicants);
+            res.status(200).json(applicants);
         }
     });
 });
@@ -28,7 +28,7 @@ router.post("/postedapplications", function (req, res) {
         }
         else {
             if (applicant.password != req.body.password) {
-                return res.status(401).send({
+                return res.status(403).send({
                     error: "Password Incorrect",
                 });
             }
@@ -54,7 +54,7 @@ router.post("/edit", function (req, res) {
         }
         else {
             if (applicant.password != req.body.password) {
-                return res.status(401).send({
+                return res.status(403).send({
                     error: "Password Incorrect",
                 });
             }
@@ -110,7 +110,7 @@ router.post("/register", (req, res) => {
     }
 
     if (errMsg != "") {
-        return res.status(400).send({ error: "Form Validation Failed! " + errMsg });
+        return res.status(201).send({ error: "Form Validation Failed! " + errMsg });
     }
 
 
@@ -121,7 +121,7 @@ router.post("/register", (req, res) => {
 
     newApplicant.save()
         .then(applicant => {
-            res.status(200).json(applicant);
+            res.status(201).json(applicant);
         })
         .catch(err => {
             res.status(400).send(err);
@@ -143,9 +143,9 @@ router.post("/login", (req, res) => {
             });
         }
         else {
-            //res.send("Email Found");
+            //res.status(200).send("Email Found");
             if (applicant.password != password) {
-                res.status(401).send({ error: "Password Incorrect" });
+                res.status(403).send({ error: "Password Incorrect" });
             }
             else {
                 /* TODO: cleaner way to delete just one key */

@@ -13,7 +13,7 @@ router.get("/", function (req, res) {
         if (err) {
             console.log(err);
         } else {
-            res.json(recruiters);
+            res.status(200).json(recruiters);
         }
     })
 });
@@ -29,7 +29,7 @@ router.post("/activejobs", function (req, res) {
         }
         else {
             console.log(recruiter.jobs);
-            res.json(recruiter.jobs);
+            res.status(200).json(recruiter.jobs);
         }
     });
 });
@@ -42,13 +42,13 @@ router.post("/employees", function (req, res) {
         })
         .then(recruiter => {
             if (!recruiter) {
-                return res.status(404).send({
+                return res.status(403).send({
                     error: "Invalid Recruiter Email",
                 });
             }
             else {
                 if (recruiter.password != req.body.password) {
-                    return res.status(401).send({
+                    return res.status(403).send({
                         error: "Password Incorrect",
                     });
                 }
@@ -60,7 +60,7 @@ router.post("/employees", function (req, res) {
                     });
 
                     console.log(employees);
-                    res.json(employees);
+                    res.status(200).json(employees);
                 }
             }
         });
@@ -76,7 +76,7 @@ router.post('/rate/:id', function (req, res) {
             }
             else {
                 if (recruiter.password != req.body.password) {
-                    return res.status(401).send({
+                    return res.status(403).send({
                         error: "Password Incorrect",
                     });
                 }
@@ -101,7 +101,7 @@ router.post('/rate/:id', function (req, res) {
                                 })
                             }
                             else {
-                                return res.status(404).send({ error: "This person is not an employee of your company!" });
+                                return res.status(403).send({ error: "This person is not an employee of your company!" });
                             }
 
                         }
@@ -122,7 +122,7 @@ router.post("/edit", function (req, res) {
         }
         else {
             if (recruiter.password != req.body.password) {
-                return res.status(401).send({
+                return res.status(403).send({
                     error: "Password Incorrect",
                 });
             }
@@ -165,7 +165,7 @@ router.post("/register", (req, res) => {
 
     newRecruiter.save()
         .then(recruiter => {
-            res.status(200).json(recruiter);
+            res.status(201).json(recruiter);
         })
         .catch(err => {
             res.status(400).send(err);
@@ -186,9 +186,9 @@ router.post("/login", (req, res) => {
             });
         }
         else {
-            //res.send("Email Found");
+            //res.status(200).send("Email Found");
             if (recruiter.password != password) {
-                res.status(401).send({ error: "Password Incorrect" });
+                res.status(403).send({ error: "Password Incorrect" });
             }
             else {
                 /* TODO: cleaner way to delete just one key */

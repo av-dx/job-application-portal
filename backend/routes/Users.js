@@ -11,7 +11,7 @@ router.get("/", function (req, res) {
         if (err) {
             console.log(err);
         } else {
-            res.json(users);
+            res.status(200).json(users);
         }
     })
 });
@@ -31,7 +31,7 @@ router.post("/register", (req, res) => {
 
     newUser.save()
         .then(user => {
-            res.status(200).json(user);
+            res.status(201).json(user);
         })
         .catch(err => {
             res.status(400).send(err);
@@ -52,13 +52,13 @@ router.post("/login", (req, res) => {
             });
         }
         else {
-            //res.send("Email Found");
+            //res.status(200).send("Email Found");
             if (user.password != password)
             {
-                res.send("Password Incorrect");
+                res.status(403).send("Password Incorrect");
             }
             else {
-                res.send("Logged in as " + user.name);
+                res.status(200).send("Logged in as " + user.name);
                 return user;
             }
         }

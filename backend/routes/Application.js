@@ -13,7 +13,7 @@ router.get("/", function (req, res) {
         if (err) {
             console.log(err);
         } else {
-            res.json(applications);
+            res.status(200).json(applications);
         }
     });
 });
@@ -39,9 +39,9 @@ router.post("/create", (req, res) => {
                     });
                 }
                 else {
-                    //res.send("Email Found");
+                    //res.status(200).send("Email Found");
                     if (applicant.password != applicantKey) {
-                        return res.status(404).json({
+                        return res.status(403).json({
                             error: "Incorrect Password!",
                         });
                     }
@@ -65,7 +65,7 @@ router.post("/create", (req, res) => {
                                 job.count.applications += 1;
                                 job.save();
                                 applicant.save();
-                                res.status(200).json(appl);
+                                res.status(201).json(appl);
                             }
                         });
                     }
@@ -209,7 +209,7 @@ router.post("/:id/:status", (req, res) => {
                             });
                         }
                         else if (recruiter.password != password) {
-                            return res.status(404).json({
+                            return res.status(403).json({
                                 error: "Incorrect Password!",
                             });
                         }

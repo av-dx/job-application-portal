@@ -15,7 +15,7 @@ router.get("/", function (req, res) {
         if (err) {
             console.log(err);
         } else {
-            res.json(jobs);
+            res.status(200).json(jobs);
         }
     })
 });
@@ -41,7 +41,7 @@ router.post("/:id/applications", function (req, res) {
                         }
                         else {
                             if (owner.password != recruiterKey) {
-                                res.status(400).send({ error: "You are not authorised [Wrong Password]!" });
+                                res.status(403).send({ error: "You are not authorised [Wrong Password]!" });
                             }
                             else {
                                 res.status(200).send({ array: job.applications });
@@ -50,7 +50,7 @@ router.post("/:id/applications", function (req, res) {
                     });
                 }
                 else {
-                    res.status(400).json({ error: "You are not authorised!" });
+                    res.status(403).json({ error: "You are not authorised!" });
                 }
             }
         });
@@ -71,9 +71,9 @@ router.post("/postjob", (req, res) => {
             });
         }
         else {
-            //res.send("Email Found");
+            //res.status(200).send("Email Found");
             if (recruiter.password != recruiterKey) {
-                return res.status(404).json({
+                return res.status(403).json({
                     error: "Incorrect Password!",
                 });
             }
@@ -125,7 +125,7 @@ router.post("/postjob", (req, res) => {
                     else {
                         recruiter.jobs.push(job._id);
                         recruiter.save();
-                        res.status(200).json(job);
+                        res.status(201).json(job);
                     }
                 })
             }
@@ -156,7 +156,7 @@ router.post("/:id/edit", (req, res) => {
                         }
                         else {
                             if (owner.password != recruiterKey) {
-                                res.status(400).send({ error: "You are not authorised [Wrong Password]!" });
+                                res.status(403).send({ error: "You are not authorised [Wrong Password]!" });
                             }
                             else {
                                 job.limit = limit;
@@ -191,7 +191,7 @@ router.post("/:id/rate", (req, res) => {
     Application.findById(applicationid)
         .then(application => {
             if (!application) {
-                return res.status(404).send({
+                return res.status(403).send({
                     error: "Application doesn't exist!",
                 });
             }
@@ -199,12 +199,12 @@ router.post("/:id/rate", (req, res) => {
                 Job.findById(jobid)
                     .then(job => {
                         if (!job) {
-                            return res.status(404).send({
+                            return res.status(403).send({
                                 error: "Job doesn't exist!",
                             });
                         }
                         else if (application._job != jobid) {
-                            return res.status(401).send({
+                            return res.status(403).send({
                                 error: "This application is not for that job!",
                             })
                         }
@@ -216,12 +216,12 @@ router.post("/:id/rate", (req, res) => {
                                 }
                                 else {
                                     if (applicant.password != applicantKey) {
-                                        res.status(400).send({ error: "You are not authorised [Wrong Password]!" });
+                                        res.status(403).send({ error: "You are not authorised [Wrong Password]!" });
                                     }
                                     else {
 
                                         if (applicant._id != application._applicant) {
-                                            res.status(401).send({ error: "You did not make this application!" });
+                                            res.status(403).send({ error: "You did not make this application!" });
                                         }
                                         else {
                                             job.rating = (job.rating * job.ratedBy + rating) / (job.ratedBy + 1);
@@ -271,7 +271,7 @@ router.post("/:id/addapplication", (req, res) => {
                         }
                         else {
                             if (owner.password != applicantKey) {
-                                res.status(400).send({ error: "You are not authorised [Wrong Password]!" });
+                                res.status(403).send({ error: "You are not authorised [Wrong Password]!" });
                             }
                             else {
                                 job.count.applications += 1;
@@ -282,7 +282,7 @@ router.post("/:id/addapplication", (req, res) => {
                                         res.status(400).send({ error: "Couldn't edit job : " + err });
                                     }
                                     else {
-                                        res.status(200).send({ error: "Application successfully added!" });
+                                        res.status(201).send({ error: "Application successfully added!" });
                                     }
                                 })
                             }
@@ -290,7 +290,7 @@ router.post("/:id/addapplication", (req, res) => {
                     });
                 }
                 else {
-                    res.status(400).json({ error: "You are not authorised!" });
+                    res.status(403).json({ error: "You are not authorised!" });
                 }
             }
         });
@@ -311,13 +311,13 @@ router.delete("/:id", (req, res) => {
                     }
                     else {
                         if (owner.password != recruiterKey) {
-                            res.status(400).send({ error: "You are not authorised [Wrong Password]!" });
+                            res.status(403).send({ error: "You are not authorised [Wrong Password]!" });
                         }
                         else {
                             Recruiter.updateOne({ _id: owner._id }, { $pullAll: { jobs: [job._id] } }).then(() => {
                                 try {
                                     job.delete();
-                                    res.status(200).send({ error: "Job Listing Deleted!" });
+                                    res.status(201).send({ error: "Job Listing Deleted!" });
                                 } catch (err) {
                                     res.status(400).send({ error: "Couldn't delete job : " + err });
                                 }
@@ -330,7 +330,7 @@ router.delete("/:id", (req, res) => {
                 });
             }
             else {
-                res.status(400).json({ error: "You are not authorised!" });
+                res.status(403).json({ error: "You are not authorised!" });
             }
 
         });
