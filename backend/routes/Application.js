@@ -1,13 +1,13 @@
 var express = require("express");
 var router = express.Router();
 
-// Load User model
+
 const Application = require("../models/Application");
 const Applicant = require("../models/Applicant");
 const Jobs = require("../models/Jobs");
 
-// GET request 
-// Getting all the users
+
+
 router.get("/", function (req, res) {
     Application.find(function (err, applications) {
         if (err) {
@@ -18,7 +18,7 @@ router.get("/", function (req, res) {
     });
 });
 
-// NOTE: Below functions are just sample to show you API endpoints working, for the assignment you may need to edit them
+
 
 router.post("/create", (req, res) => {
     const jobid = req.body.jobid;
@@ -32,14 +32,14 @@ router.post("/create", (req, res) => {
         }
         else {
             Applicant.findOne({ email: email }).then(applicant => {
-                // Check if user email exists
+               
                 if (!applicant) {
                     return res.status(404).json({
                         error: "Applicant doesn't exist!",
                     });
                 }
                 else {
-                    //res.status(200).send("Email Found");
+                   
                     if (applicant.password != applicantKey) {
                         return res.status(403).json({
                             error: "Incorrect Password!",
@@ -49,7 +49,7 @@ router.post("/create", (req, res) => {
                         const newApplication = new Application({
                             _applicant: applicant._id,
                             _job: jobid,
-                            //_recruiter: job.
+                           
                             sop: req.body.sop,
                             status: "Submitted",
                             /* TODO: Verify Date format. What is Day-23, Mmonth-June , etc.? */
@@ -124,7 +124,7 @@ function hireApplicant(request) {
                                     }
                                     else {
                                         Recruiter.findOne({ email: job.recruiteremail }).then(recruiter => {
-                                            // Check if user email exists
+                                           
                                             if (!recruiter) {
                                                 console.log({
                                                     error: "Recruiter doesn't exist!",
@@ -202,7 +202,7 @@ router.post("/:id/:status", (req, res) => {
                 }
                 else {
                     Recruiter.findOne({ email: email }).then(recruiter => {
-                        // Check if user email exists
+                       
                         if (!recruiter) {
                             return res.status(404).json({
                                 error: "Recruiter doesn't exist!",

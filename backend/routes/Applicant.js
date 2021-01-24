@@ -1,13 +1,13 @@
 var express = require("express");
 var router = express.Router();
 
-// Load User model
+
 const Applicant = require("../models/Applicant");
 const Recruiter = require("../models/Recruiter");
 const Application = require("../models/Application");
 
-// GET request 
-// Getting all the users
+
+
 router.get("/", function (req, res) {
     Applicant.find(function (err, applicants) {
         if (err) {
@@ -18,7 +18,7 @@ router.get("/", function (req, res) {
     });
 });
 
-// Getting all applications for an applicant
+
 router.post("/postedapplications", function (req, res) {
     Applicant.findOne({ email: req.body.email }).populate({ path: "applications", populate: { path: "_job", model: "Jobs" } }).then(applicant => {
         if (!applicant) {
@@ -44,7 +44,7 @@ router.post("/postedapplications", function (req, res) {
     });
 });
 
-// Update applicant info
+
 router.post("/edit", function (req, res) {
     Applicant.findOne({ email: req.body.curemail }).then(applicant => {
         if (!applicant) {
@@ -79,10 +79,10 @@ router.post("/edit", function (req, res) {
 });
 
 /* TODO: Get consistency on password, applicantKey, etc conventions */
-// NOTE: Below functions are just sample to show you API endpoints working, for the assignment you may need to edit them
 
-// POST request 
-// Add a user to db
+
+
+
 router.post("/register", (req, res) => {
     const newApplicant = new Applicant({
         name: req.body.name,
@@ -129,21 +129,21 @@ router.post("/register", (req, res) => {
 });
 
 /* TODO: Make all auth with hashKey + user _ids */
-// POST request 
-// Login
+
+
 router.post("/login", (req, res) => {
     const email = req.body.email;
     const password = req.body.password;
-    // Find user by email
+   
     Applicant.findOne({ email: req.body.email }).populate("applications").then(applicant => {
-        // Check if user email exists
+       
         if (!applicant) {
             return res.status(404).send({
                 error: "Email not found",
             });
         }
         else {
-            //res.status(200).send("Email Found");
+           
             if (applicant.password != password) {
                 res.status(403).send({ error: "Password Incorrect" });
             }

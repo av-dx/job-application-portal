@@ -1,13 +1,13 @@
 var express = require("express");
 var router = express.Router();
 
-// Load User model
+
 const Recruiter = require("../models/Recruiter");
 const Applicant = require("../models/Applicant");
 const Jobs = require("../models/Jobs");
 
-// GET request 
-// Getting all the users
+
+
 router.get("/", function (req, res) {
     Recruiter.find(function (err, recruiters) {
         if (err) {
@@ -18,7 +18,7 @@ router.get("/", function (req, res) {
     })
 });
 
-// Getting active jobs
+
 /* TODO: Currently returns all jobs, see moodle asked by Mehul */
 router.post("/activejobs", function (req, res) {
     Recruiter.findOne({ email: req.body.email }).populate("jobs").then(recruiter => {
@@ -112,7 +112,7 @@ router.post('/rate/:id', function (req, res) {
         });
 })
 
-// Update recruiter info
+
 router.post("/edit", function (req, res) {
     Recruiter.findOne({ email: req.body.curemail }).then(recruiter => {
         if (!recruiter) {
@@ -148,10 +148,10 @@ router.post("/edit", function (req, res) {
 
 
 
-// NOTE: Below functions are just sample to show you API endpoints working, for the assignment you may need to edit them
 
-// POST request 
-// Add a user to db
+
+
+
 router.post("/register", (req, res) => {
     const newRecruiter = new Recruiter({
         name: req.body.name,
@@ -172,21 +172,21 @@ router.post("/register", (req, res) => {
         });
 });
 
-// POST request 
-// Login
+
+
 router.post("/login", (req, res) => {
     const email = req.body.email;
     const password = req.body.password;
-    // Find user by email
+   
     Recruiter.findOne({ email }).then(recruiter => {
-        // Check if user email exists
+       
         if (!recruiter) {
             return res.status(404).json({
                 error: "Email not found",
             });
         }
         else {
-            //res.status(200).send("Email Found");
+           
             if (recruiter.password != password) {
                 res.status(403).send({ error: "Password Incorrect" });
             }

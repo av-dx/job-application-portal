@@ -2,14 +2,14 @@ const { application } = require("express");
 var express = require("express");
 var router = express.Router();
 
-// Load User model
+
 const Job = require("../models/Jobs");
 const Recruiter = require("../models/Recruiter");
 const Applicant = require("../models/Applicant");
 const Application = require("../models/Application");
 
-// GET request 
-// Getting all the users
+
+
 router.get("/", function (req, res) {
     Job.find(function (err, jobs) {
         if (err) {
@@ -20,7 +20,7 @@ router.get("/", function (req, res) {
     })
 });
 
-// Getting all the users
+
 router.post("/:id/applications", function (req, res) {
     const recruiterKey = req.body.password;
     const email = req.body.email;
@@ -56,22 +56,22 @@ router.post("/:id/applications", function (req, res) {
         });
 });
 
-// NOTE: Below functions are just sample to show you API endpoints working, for the assignment you may need to edit them
 
-// POST request 
-// Add a user to db
+
+
+
 router.post("/postjob", (req, res) => {
     const email = req.body.recruiteremail;
     const recruiterKey = req.body.recruiterKey;
     Recruiter.findOne({ email }).then(recruiter => {
-        // Check if user email exists
+       
         if (!recruiter) {
             return res.status(404).json({
                 error: "Recruiter doesn't exist!",
             });
         }
         else {
-            //res.status(200).send("Email Found");
+           
             if (recruiter.password != recruiterKey) {
                 return res.status(403).json({
                     error: "Incorrect Password!",
