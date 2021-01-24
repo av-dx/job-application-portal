@@ -2,7 +2,6 @@ import React from 'react';
 import { BrowserRouter as Router, Route, Link } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css"
 
-import UsersList from './components/Users/UsersList'
 import ApplicantDashboard from './components/Users/ApplicantDashboard'
 import Home from './components/Common/Home'
 import Register from './components/Common/Register'
