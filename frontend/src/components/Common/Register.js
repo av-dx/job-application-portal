@@ -58,7 +58,7 @@ export default class Register extends Component {
     onAddEducation() {
         this.setState({
             education: [...this.state.education, {
-                institute: '', startYear: 2000 , endYear: ''
+                institute: '', startYear: 2000, endYear: ''
             }]
         });
     }
@@ -205,7 +205,7 @@ export default class Register extends Component {
                 })
                 .catch(err => {
                     if (err) {
-                        alert(err)
+                        alert(err.response.data.error);
                     }
                 })
 
