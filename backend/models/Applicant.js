@@ -17,7 +17,7 @@ const ApplicantSchema = new Schema({
   /* TODO: PDFs and Images*/
   resume: [String],
   profilepic: {type: String, required: false},
-  applications: [{type: Schema.Types.ObjectId, ref: 'Application'}],
+  _applications: [{type: Schema.Types.ObjectId, ref: 'Application'}],
   password: {type: String, required: true},
   date: {type: Date, required: false},
   doj: {type: Date, required: false},

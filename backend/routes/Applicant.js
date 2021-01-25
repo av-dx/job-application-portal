@@ -102,7 +102,7 @@ router.post('/edit', function(req, res) {
 
 router.post('/postedapplications', function(req, res) {
   Applicant.findOne({email: req.body.email})
-      .populate({path: 'applications', populate: {path: '_job', model: 'Jobs'}})
+      .populate({path: '_applications', populate: {path: '_job', model: 'Jobs'}})
       .then((applicant) => {
         if (!applicant) {
           return res.status(404).send({
@@ -111,12 +111,12 @@ router.post('/postedapplications', function(req, res) {
         } else {
           bcrypt.compare(req.body.password, applicant.password).then((isMatch) => {
             if (isMatch) {
-              applicant.applications.forEach((appl, index) => {
-                applicant.applications[index]._job.applications = undefined;
-                applicant.applications[index]._job.count = undefined;
+              applicant._applications.forEach((appl, index) => {
+                applicant._applications[index]._job.applications = undefined;
+                applicant._applications[index]._job.count = undefined;
               });
-              console.log(applicant.applications);
-              res.status(200).send(applicant.applications);
+              console.log(applicant._applications);
+              res.status(200).send(applicant._applications);
             } else {
               res.status(403).send({error: 'Password Incorrect'});
             }
@@ -135,7 +135,7 @@ router.post('/register', (req, res) => {
     resume: [],
     profilepic: '',
     password: req.body.password,
-    applications: [],
+    _applications: [],
     /* TODO: Useless date ? */
     date: Date.now(),
     isHired: false,
@@ -175,7 +175,7 @@ router.post('/register', (req, res) => {
 router.post('/login', (req, res) => {
   const password = req.body.password;
 
-  Applicant.findOne({email: req.body.email}).populate('applications').then((applicant) => {
+  Applicant.findOne({email: req.body.email}).populate('_applications').then((applicant) => {
     if (!applicant) {
       return res.status(404).send({
         error: 'Email not found',
@@ -192,7 +192,7 @@ router.post('/login', (req, res) => {
             rating: applicant.rating,
             resume: applicant.resume,
             profilepic: applicant.profilepic,
-            applications: applicant.applications,
+            _applications: applicant._applications,
             isHired: applicant.isHired,
           });
         } else {

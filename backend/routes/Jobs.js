@@ -270,10 +270,10 @@ router.delete('/:id', (req, res) => {
                       job.applications.forEach((appl) => {
                         Application.findById(appl).populate('_applicant').then((application)=>{
                           Applicant.findById(application._applicant).then((applicant) => {
-                            const index = applicant.applications.indexOf(appl);
+                            const index = applicant._applications.indexOf(appl);
                             applicant.isHired = false;
                             if (index >= 0) {
-                              applicant.applications.splice( index, 1 );
+                              applicant._applications.splice( index, 1 );
                             }
                             applicant.save();
                           });

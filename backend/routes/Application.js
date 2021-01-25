@@ -38,9 +38,9 @@ router.post('/create', (req, res) => {
           });
         } else {
           if (applicant.isHired) {
-            return res.status(403).send({error: 'This applicant is already hired! You cant make any applications!'});
+            return res.status(403).send({error: 'This applicant is already hired! You cant make any _applications!'});
           }
-          if (applicant.applications.length >= 1) {
+          if (applicant._applications.length >= 10) {
             return res.status(403).send({error: 'You have made 10 applications already, cannot post another!'});
           }
           if (new Date(job.deadline) <= new Date(Date.now())) {
@@ -61,7 +61,7 @@ router.post('/create', (req, res) => {
                 if (err) {
                   console.log(err);
                 } else {
-                  applicant.applications.push(appl._id);
+                  applicant._applications.push(appl._id);
                   job.applications.push(appl._id);
                   job.count.applications += 1;
                   job.save();
@@ -116,7 +116,7 @@ function hireApplicant(request) {
               }); // imp line!!!!
               applicant.doj = Date.now();
               applicant.isHired = true;
-              applicant.applications.forEach((app) => {
+              applicant._applications.forEach((app) => {
                 Application.findById(app).then((appl) => {
                   Jobs.findOne({_id: appl._job}).then((job) => {
                     if (!job) {
