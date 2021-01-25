@@ -12,10 +12,8 @@ import TextField from '@material-ui/core/TextField';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import Divider from '@material-ui/core/Divider';
-import Autocomplete from '@material-ui/lab/Autocomplete';
 import IconButton from "@material-ui/core/IconButton";
 import InputAdornment from "@material-ui/core/InputAdornment";
-import InputLabel from '@material-ui/core/InputLabel';
 import Slider from '@material-ui/core/Slider'
 
 import SearchIcon from "@material-ui/icons/Search";
