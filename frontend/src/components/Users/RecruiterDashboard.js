@@ -73,7 +73,7 @@ class RecruiterDashboard extends Component {
                 this.setState({ jobs: jobs });
             })
             .catch(error => {
-                console.log(error.data.error);
+                console.log(error.response.data.error);
             })
     }
 

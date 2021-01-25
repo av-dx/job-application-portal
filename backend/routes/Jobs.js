@@ -32,7 +32,8 @@ router.post('/:id/applications', function(req, res) {
 
   Job.findById(req.params.id).populate({
     path: 'applications', model: 'Application',
-    populate: {path: '_applicant', model: 'Applicants'}})
+    populate: {path: '_applicant', model: 'Applicants'},
+  })
       .then((job) => {
         if (!job) {
           return res.status(404).send({
@@ -42,7 +43,7 @@ router.post('/:id/applications', function(req, res) {
           if (job.recruiteremail == email) {
             Recruiter.findOne({email: email}).then((owner) => {
               if (!owner) {
-                // How did we get here?
+              // How did we get here?
                 res.status(500)
                     .send({error: 'This Job doesn\'t belong to anybody!'});
               } else {
@@ -151,7 +152,7 @@ router.post('/:id/edit', (req, res) => {
           if (job.recruiteremail == email) {
             Recruiter.findOne({email: email}).then((owner) => {
               if (!owner) {
-                // How did we get here?
+              // How did we get here?
                 res.status(500).send({error: 'This Job doesn\'t belong to anybody!'});
               } else {
                 bcrypt.compare(password, owner.password).then((isMatch) => {
@@ -214,6 +215,8 @@ router.post('/:id/rate', (req, res) => {
                   return res.status(403).send({
                     error: 'This application is not for that job!',
                   });
+                } else if (application.status != 'Accepted') {
+                  return res.status(403).send({error: 'This application has not been accepted!'});
                 } else {
                   Applicant.findOne({email: email}).then((applicant) => {
                     if (!applicant) {
@@ -260,46 +263,35 @@ router.delete('/:id', (req, res) => {
         if (job.recruiteremail == email) {
           Recruiter.findOne({email: email}).then((owner) => {
             if (!owner) {
-              // How did we get here?
+            // How did we get here?
               res.status(500).send({error: 'This Job doesn\'t belong to anybody!'});
             } else {
               bcrypt.compare(password, owner.password).then((isMatch) => {
                 if (isMatch) {
-                  Recruiter.updateOne({_id: owner._id}, {$pullAll: {jobs: [job._id]}}).then(() => {
-                    try {
-                      job.applications.forEach((appl) => {
-                        Application.findById(appl).populate('_applicant').then((application)=>{
-                          Applicant.findById(application._applicant).then((applicant) => {
-                            const index = applicant._applications.indexOf(appl);
-                            applicant.isHired = false;
-                            if (index >= 0) {
-                              applicant._applications.splice( index, 1 );
-                            }
-                            applicant.save();
-                          });
-                          owner.employees.forEach((employee, index) => {
-                            owner.employees.splice(index, 1);
-                          }, owner.employees);
-                          application.delete();
-                          owner.save();
-                        });
+                  Recruiter.findByIdAndUpdate(owner._id, {'$pull': {'jobs': job._id, 'employees': {'_job': job._id}}}).then((done) => {
+                    job.applications.forEach((application) => {
+                      Applicant.updateMany({_applications: application}, {'isHired': false, '$pull': {'_applications': application._id}}).then((done) => {
+                        Application.deleteMany({_job: job._id}).then((done) => { });
+                      }).catch((err) => {
+                        return res.status(400).send({error: err});
                       });
-                      job.delete();
-                      res.status(201).send({error: 'Job Listing Deleted!'});
-                    } catch (err) {
-                      res.status(400).send({error: 'Couldn\'t delete job : ' + err});
-                    }
+                    });
                   }).catch((err) => {
-                    res.status(400).send({error: 'Could not update recruiter!: ' + err});
+                    return res.status(400).send({error: err});
+                  });
+                  Job.findByIdAndDelete(req.params.id).then((done)=>{
+                    return res.status(200).send({error: 'Job deleted cascade!'});
+                  }).catch((err)=>{
+                    return res.status(400).send({error: err});
                   });
                 } else {
-                  res.status(403).send({error: 'Password Incorrect'});
+                  return res.status(403).send({error: 'Password Incorrect'});
                 }
               });
             }
           });
         } else {
-          res.status(403).json({error: 'You are not authorised!'});
+          return res.status(403).json({error: 'You are not authorised!'});
         }
       });
 });

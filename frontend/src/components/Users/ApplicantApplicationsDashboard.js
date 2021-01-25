@@ -102,15 +102,18 @@ class RecruiterApplicationsDashboard extends Component {
                                                     }}
                                                 />
                                                 {(ind == this.state.editing) ? "" : Number.parseFloat(application._job.rating).toFixed(1)}
-                                                {(this.state.editing == ind) ?
-                                                    <Button onClick={() => {
-                                                        this.rateJob(ind, application._id, application._job._id);
-                                                    }}>Save Rating</Button>
+                                                {(application.status == "Accepted") ?
+                                                    (this.state.editing == ind) ?
+                                                        <Button onClick={() => {
+                                                            this.rateJob(ind, application._id, application._job._id);
+                                                        }}>Save Rating</Button>
+                                                        :
+                                                        <Button onClick={() => {
+                                                            console.log(application, ind);
+                                                            this.setState({ editing: ind, ratingToSave: application._job.rating })
+                                                        }}>Start Rating</Button>
                                                     :
-                                                    <Button onClick={() => {
-                                                        console.log(application, ind);
-                                                        this.setState({ editing: ind, ratingToSave: application._job.rating })
-                                                    }}>Start Rating</Button>
+                                                    ""
                                                 }
                                             </TableCell>
                                             <TableCell align="center">
