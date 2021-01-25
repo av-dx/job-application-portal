@@ -18,7 +18,7 @@ export default class Home extends Component {
     render() {
         return (
             <div>
-                Happy Coding!
+                Job application portal made for an assignment of DASS course at IIIT-H (Spring-2021).
            </div>
         )
     }
