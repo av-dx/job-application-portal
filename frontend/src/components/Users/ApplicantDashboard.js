@@ -333,7 +333,7 @@ class ApplicantDashboard extends Component {
                                             <TableCell>{job.recruitername}</TableCell>
                                             <TableCell>{job.duration}</TableCell>
                                             <TableCell>{job.salary}</TableCell>
-                                            <TableCell>{job.deadline}</TableCell>
+                                            <TableCell>{new Date(job.deadline).toLocaleString()}</TableCell>
                                             <TableCell><Rating value={job.rating} readOnly></Rating>{Number.parseFloat(job.rating).toFixed(1)}</TableCell>
                                             <TableCell>
                                                 {(this.state.appliedJobs.includes(job._id)) ?

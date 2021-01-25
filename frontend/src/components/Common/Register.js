@@ -145,9 +145,11 @@ export default class Register extends Component {
                             color="Primary"
                             variant="contained"
                             onClick={() => {
-                                var skills = new Set(this.state.skills);
-                                skills.add(this.state.skilltoadd);
-                                this.setState({ skills: skills, skilltoadd: '' });
+                                if ((this.state.skilltoadd != '') && (this.state.skilltoadd != undefined)) {
+                                    var skills = new Set(this.state.skills);
+                                    skills.add(this.state.skilltoadd);
+                                    this.setState({ skills: skills, skilltoadd: '' });
+                                }
                             }}>
                             Add this skill
                         </Button>
