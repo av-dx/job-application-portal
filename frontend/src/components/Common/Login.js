@@ -42,6 +42,7 @@ export default class Register extends Component {
                 }
                 axios.post('http://localhost:4000/recruiter/login', recruiter)
                     .then(res => {
+                        localStorage.setItem("userid", res.data._id);
                         localStorage.setItem("email", recruiter.email);
                         localStorage.setItem("password", recruiter.password);
                         localStorage.setItem("type", "recruiter");
@@ -63,6 +64,7 @@ export default class Register extends Component {
                 }
                 axios.post('http://localhost:4000/applicant/login', applicant)
                     .then(res => {
+                        localStorage.setItem("userid", res.data._id);
                         localStorage.setItem("email", applicant.email);
                         localStorage.setItem("password", applicant.password);
                         localStorage.setItem("type", "applicant");

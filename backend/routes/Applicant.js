@@ -163,7 +163,18 @@ router.post('/register', (req, res) => {
       newApplicant.password = hash;
       newApplicant
           .save()
-          .then((applicant) => res.status(201).json(applicant))
+          .then((applicant) => res.status(200).send({
+            _id: applicant._id,
+            name: applicant.name,
+            email: applicant.email,
+            education: applicant.education,
+            skills: applicant.skills,
+            rating: applicant.rating,
+            resume: applicant.resume,
+            profilepic: applicant.profilepic,
+            _applications: applicant._applications,
+            isHired: applicant.isHired,
+          }))
           .catch((err) => {
             console.log(err.message);
             res.status(400).send({error: err.message});

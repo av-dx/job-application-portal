@@ -166,7 +166,13 @@ router.post('/register', (req, res) => {
           newRecruiter.password = hash;
           newRecruiter
               .save()
-              .then((recruiter) => res.status(201).json(recruiter))
+              .then((recruiter) => res.status(200).json({
+                _id: recruiter._id,
+                name: recruiter.name,
+                email: recruiter.email,
+                contact: recruiter.contact,
+                bio: recruiter.bio,
+              }) )
               .catch((err) => {
                 console.log(err.message);
                 res.status(400).send({error: err.message});
@@ -191,6 +197,7 @@ router.post('/login', (req, res) => {
       bcrypt.compare(password, recruiter.password).then((isMatch) => {
         if (isMatch) {
           res.status(200).json({
+            _id: recruiter._id,
             name: recruiter.name,
             email: recruiter.email,
             contact: recruiter.contact,
