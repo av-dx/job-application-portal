@@ -65,7 +65,7 @@ class ApplicantDashboard extends Component {
             password: localStorage.getItem("password")
         })
             .then(response => {
-                let submittedApplications = response.data.applications;
+                let submittedApplications = response.data._applications;
                 let appliedJobs = submittedApplications.map(a => a._job);
                 console.log(response.data);
                 axios.get('http://localhost:4000/job/')

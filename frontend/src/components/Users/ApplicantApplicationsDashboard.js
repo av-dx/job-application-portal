@@ -27,7 +27,9 @@ class RecruiterApplicationsDashboard extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            applications: []
+            applications: [],
+            editing: "none",
+            ratingToSave: '',
         };
         this.rateJob = this.rateJob.bind(this);
     }
@@ -47,9 +49,9 @@ class RecruiterApplicationsDashboard extends Component {
             })
     }
 
-    rateJob(event, index, applicationid, jobid) {
-        const rating = Number.parseFloat(event.target.value);
-        console.log([event, index, applicationid, jobid, rating]);
+    rateJob(index, applicationid, jobid) {
+        const rating = Number.parseFloat(this.state.ratingToSave);
+        console.log([index, applicationid, jobid, rating]);
         axios.post('http://localhost:4000/job/' + jobid + '/rate', {
             email: localStorage.getItem("email"),
             password: localStorage.getItem("password"),
@@ -64,6 +66,7 @@ class RecruiterApplicationsDashboard extends Component {
                 arr[index]._job.ratedBy += 1;
                 this.setState({
                     applications: arr,
+                    editing: "none"
                 })
                 alert(response.data.error);
             })
@@ -99,15 +102,26 @@ class RecruiterApplicationsDashboard extends Component {
                                             <TableCell align="center">{application.status}</TableCell>
                                             <TableCell align="center">
                                                 <Rating
-                                                    name="rating"
-                                                    value={application._job.rating}
+                                                    name="rating-${id}"
+                                                    value={(ind == this.state.editing) ? this.state.ratingToSave : application._job.rating}
                                                     size="large"
                                                     precision={0.5}
-                                                    onChange={(event, id, applicationid, jobid) => {
-                                                        this.rateJob(event, ind, application._id, application._job._id)
+                                                    readOnly={(ind != this.state.editing)}
+                                                    onChange={(event) => {
+                                                        this.setState({ ratingToSave: event.target.value, })
                                                     }}
                                                 />
-                                                {Number.parseFloat(application._job.rating).toFixed(1)}
+                                                {(ind == this.state.editing) ? "" : Number.parseFloat(application._job.rating).toFixed(1)}
+                                                {(this.state.editing == ind) ?
+                                                    <Button onClick={() => {
+                                                        this.rateJob(ind, application._id, application._job._id);
+                                                    }}>Save Rating</Button>
+                                                    :
+                                                    <Button onClick={() => {
+                                                        console.log(application, ind);
+                                                        this.setState({ editing: ind, ratingToSave: application._job.rating })
+                                                    }}>Start Rating</Button>
+                                                }
                                             </TableCell>
                                             <TableCell align="center">
                                             </TableCell>

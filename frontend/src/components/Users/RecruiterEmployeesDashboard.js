@@ -33,7 +33,9 @@ class RecruiterEmployeesDashboard extends Component {
         this.state = {
             employees: [],
             sortBy: "none",
-            sortAsc: true
+            sortAsc: true,
+            editing: "none",
+            ratingToSave: '',
         };
 
         this.onGiveRating = this.onGiveRating.bind(this);
@@ -45,18 +47,18 @@ class RecruiterEmployeesDashboard extends Component {
 
     }
 
-    onGiveRating(event, id, index) {
-        console.log([event, id, index]);
-        var empArray = [...this.state.employees];
-        empArray[index].rating = event.target.value;
+    onGiveRating(ind, employee) {
+        var employees = [...this.state.employees]
+        employees[ind].rating = this.state.ratingToSave;
+        console.log(ind);
 
-        axios.post('http://localhost:4000/recruiter/rateemployee/' + id, {
+        axios.post('http://localhost:4000/recruiter/rateemployee/' + employee.id, {
             email: localStorage.getItem("email"),
             password: localStorage.getItem("password"),
-            rating: event.target.value,
+            rating: this.state.ratingToSave,
         }).then(response => {
             alert(response.data.error);
-            this.setState({ employees: empArray })
+            this.setState({ employees: employees, editing: "none" })
         }).catch(error => {
             alert(error.response.data.error);
         })
@@ -200,12 +202,26 @@ class RecruiterEmployeesDashboard extends Component {
                                             <TableCell>{employee.type}</TableCell>
                                             <TableCell>{employee.title}</TableCell>
                                             <TableCell><Rating
-                                                name="rating"
-                                                value={employee.rating}
+                                                name="rating-${id}"
+                                                value={(ind == this.state.editing) ? this.state.ratingToSave : employee.rating}
                                                 size="large"
                                                 precision={0.5}
-                                                onChange={(event, id, index) => { this.onGiveRating(event, employee.id, ind) }}
-                                            /></TableCell>
+                                                readOnly={(ind != this.state.editing)}
+                                                onChange={(event) => {
+                                                    this.setState({ ratingToSave: event.target.value })
+                                                }}
+                                            />
+                                                {(this.state.editing == ind) ?
+                                                    <Button onClick={() => {
+                                                        this.onGiveRating(ind, employee);
+                                                    }}>Save Rating</Button>
+                                                    :
+                                                    <Button onClick={() => {
+                                                        console.log(employee, ind);
+                                                        this.setState({ editing: ind, ratingToSave: employee.rating })
+                                                    }}>Start Rating</Button>
+                                                }
+                                            </TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
