@@ -18,6 +18,12 @@ export default class NavBar extends Component {
                             <li className="navbar-item">
                                 <Link to="/dashboard" className="nav-link">Dashboard</Link>
                             </li>
+                            <li className="navbar-item" hidden={!(localStorage.getItem("type") == "applicant")}>
+                                <Link to="/applicant/applications" className="nav-link">My Applications</Link>
+                            </li>
+                            <li className="navbar-item" hidden={!(localStorage.getItem("type") == "recruiter")}>
+                                <Link to="/recruiter/employees" className="nav-link">My Employees</Link>
+                            </li>
                             <li className="navbar-item" hidden={(localStorage.getItem("name"))}>
                                 <Link to="/register" className="nav-link">Register</Link>
                             </li>
