@@ -31,18 +31,11 @@ class RecruiterEmployeesDashboard extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            jobs: [],
             employees: [],
-            editing: 'none',
-            newMaxApplications: '',
-            newMaxPositions: '',
-            newDeadline: '',
             sortBy: "none",
             sortAsc: true
         };
 
-        this.onEditJob = this.onEditJob.bind(this);
-        this.onDeleteJob = this.onDeleteJob.bind(this);
         this.onGiveRating = this.onGiveRating.bind(this);
         this.sortedIcon = this.sortedIcon.bind(this);
         this.sortByName = this.sortByName.bind(this);
@@ -158,56 +151,7 @@ class RecruiterEmployeesDashboard extends Component {
         }
     }
 
-    onEditJob(id, index) {
-        console.log(id);
-        const newLimit = {
-            applications: this.state.newMaxApplications,
-            positions: this.state.newMaxPositions
-        }
-        const newDeadline = this.state.newDeadline;
-        axios.post('http://localhost:4000/job/' + id + '/edit', {
-            email: localStorage.getItem("email"),
-            password: localStorage.getItem("password"),
-            limit: newLimit,
-            deadline: newDeadline,
-        }).then(response => {
-            console.log(response.data.error);
-            var jobs = [...this.state.jobs];
-            jobs[index].limit = newLimit;
-            jobs[index].deadline = newDeadline;
-            this.setState({ jobs: jobs, editing: 'none' });
-        }).catch(error => {
-            console.log(error);
-        })
-    }
-
-    onDeleteJob(id, index) {
-        console.log(id);
-        axios.delete('http://localhost:4000/job/' + id, { data: { email: localStorage.getItem("email"), password: localStorage.getItem("password") } })
-            .then(response => {
-                console.log(response.data.error);
-                var jobs = [...this.state.jobs];
-                jobs.splice(index, 1);
-                this.setState({ jobs: jobs });
-            })
-            .catch(error => {
-                console.log(error.data.error);
-            })
-    }
-
     componentDidMount() {
-        axios.post('http://localhost:4000/recruiter/activejobs', { email: localStorage.getItem("email"), password: localStorage.getItem("password") })
-            .then(response => {
-                this.setState({
-                    jobs: response.data,
-                    salarySortedJobs: response.data,
-                    durationSortedJobs: response.data,
-                    ratingSortedJobs: response.data
-                });
-            })
-            .catch(function (error) {
-                console.log(error);
-            })
         axios.post('http://localhost:4000/recruiter/employees', { email: localStorage.getItem("email"), password: localStorage.getItem("password") })
             .then(response => {
                 var resArray = response.data;
