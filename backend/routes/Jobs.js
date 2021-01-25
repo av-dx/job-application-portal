@@ -9,19 +9,18 @@ const Recruiter = require('../models/Recruiter');
 const Applicant = require('../models/Applicant');
 const Application = require('../models/Application');
 
-
 router.get('/', function(req, res) {
   Job.find(function(err, jobs) {
     if (err) {
       console.log(err);
     } else {
-      const availablejobs = [...jobs];
+      const availablejobs = new Set([...jobs]);
       availablejobs.forEach((j, index) => {
         if (new Date(j.deadline) < new Date(Date.now())) {
-          availablejobs.splice(index, 1);
+          availablejobs.delete(j);
         }
-      });
-      res.status(200).json(availablejobs);
+      }, availablejobs);
+      res.status(200).json(Array.from(availablejobs));
     }
   });
 });
@@ -92,7 +91,7 @@ router.post('/postjob', (req, res) => {
             /* TODO: Limit to 1-6 months, and 0 indefinite */
             duration: req.body.duration % 7,
             /* TODO: Salary positive check */
-            salary: req.body.salary,
+            salary: Number.parseFloat(req.body.salary).toFixed(),
             /* TODO: Dynamic ..... */
             rating: 0,
             ratedBy: 0,
