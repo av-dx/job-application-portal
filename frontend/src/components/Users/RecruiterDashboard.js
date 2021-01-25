@@ -68,6 +68,7 @@ class RecruiterDashboard extends Component {
             this.setState({ jobs: jobs, editing: 'none' });
         }).catch(error => {
             console.log(error);
+            alert(error.response.data.error);
         })
     }
 
@@ -112,7 +113,7 @@ class RecruiterDashboard extends Component {
                                         <TableCell>Title</TableCell>
                                         <TableCell>Date of posting</TableCell>
                                         <TableCell>Applications (Submitted/Max)</TableCell>
-                                        <TableCell>Number of positions</TableCell>
+                                        <TableCell>Positions (Vacant/Max)</TableCell>
                                         <TableCell>Deadline</TableCell>
                                         <TableCell align="center">Actions</TableCell>
                                     </TableRow>
@@ -140,7 +141,7 @@ class RecruiterDashboard extends Component {
                                                 }
                                             </TableCell>
                                             <TableCell>
-                                                {job.count.positions}/
+                                                {job.limit.positions - job.count.positions}/
                                             {(this.state.editing == ind) ?
                                                     <TextField
                                                         variant="outlined"

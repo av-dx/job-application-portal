@@ -1,6 +1,7 @@
 /* eslint-disable max-len */
 const express = require('express');
 const router = express.Router();
+const bcrypt = require('bcryptjs');
 
 
 const Job = require('../models/Jobs');
@@ -14,14 +15,20 @@ router.get('/', function(req, res) {
     if (err) {
       console.log(err);
     } else {
-      res.status(200).json(jobs);
+      const availablejobs = [...jobs];
+      availablejobs.forEach((j, index) => {
+        if (new Date(j.deadline) < new Date(Date.now())) {
+          availablejobs.splice(index, 1);
+        }
+      });
+      res.status(200).json(availablejobs);
     }
   });
 });
 
 
 router.post('/:id/applications', function(req, res) {
-  const recruiterKey = req.body.password;
+  const password = req.body.password;
   const email = req.body.email;
 
   Job.findById(req.params.id).populate({
@@ -40,12 +47,13 @@ router.post('/:id/applications', function(req, res) {
                 res.status(500)
                     .send({error: 'This Job doesn\'t belong to anybody!'});
               } else {
-                if (owner.password != recruiterKey) {
-                  res.status(403)
-                      .send({error: 'You are not authorised [Wrong Password]!'});
-                } else {
-                  res.status(200).send({array: job.applications});
-                }
+                bcrypt.compare(password, owner.password).then((isMatch) => {
+                  if (isMatch) {
+                    res.status(200).send({array: job.applications});
+                  } else {
+                    res.status(403).send({error: 'Password Incorrect'});
+                  }
+                });
               }
             });
           } else {
@@ -57,77 +65,79 @@ router.post('/:id/applications', function(req, res) {
 
 
 router.post('/postjob', (req, res) => {
-  const email = req.body.recruiteremail;
-  const recruiterKey = req.body.recruiterKey;
+  const email = req.body.email;
+  const password = req.body.password;
   Recruiter.findOne({email}).then((recruiter) => {
     if (!recruiter) {
       return res.status(404).json({
         error: 'Recruiter doesn\'t exist!',
       });
     } else {
-      if (recruiter.password != recruiterKey) {
-        return res.status(403).json({
-          error: 'Incorrect Password!',
-        });
-      } else {
-        const newJob = new Job({
-          title: req.body.title,
-          /* TODO: Email integrity check? */
-          recruitername: recruiter.name,
-          recruiteremail: recruiter.email,
-          count: {applications: 0, positions: 0},
-          limit: req.body.limit,
-          postedOn: Date.now(),
-          deadline: req.body.deadline,
-          /* TODO: Limit to Languages? */
-          skillset: req.body.skillset,
-          /* TODO: Enumerators ? */
-          type: req.body.type,
-          /* TODO: Limit to 1-6 months, and 0 indefinite */
-          duration: req.body.duration % 7,
-          /* TODO: Salary positive check */
-          salary: req.body.salary,
-          /* TODO: Dynamic ..... */
-          rating: 0,
-        });
-        // Server side validations
+      bcrypt.compare(password, recruiter.password).then((isMatch) => {
+        if (isMatch) {
+          const newJob = new Job({
+            title: req.body.title,
+            /* TODO: Email integrity check? */
+            recruitername: recruiter.name,
+            recruiteremail: recruiter.email,
+            count: {applications: 0, positions: 0},
+            limit: req.body.limit,
+            postedOn: Date.now(),
+            deadline: req.body.deadline,
+            active: true,
+            /* TODO: Limit to Languages? */
+            skillset: req.body.skillset,
+            /* TODO: Enumerators ? */
+            type: req.body.type,
+            /* TODO: Limit to 1-6 months, and 0 indefinite */
+            duration: req.body.duration % 7,
+            /* TODO: Salary positive check */
+            salary: req.body.salary,
+            /* TODO: Dynamic ..... */
+            rating: 0,
+            ratedBy: 0,
+          });
+          // Server side validations
 
-        errMsg = '';
+          errMsg = '';
 
-        if (!(['Full-Time', 'Part-Time', 'WFH'].includes(newJob.type))) {
-          errMsg += 'Select Valid Job Type! ';
-        }
-        if (newJob.limit.applications < newJob.limit.positions) {
-          errMsg += 'Max number of applications should be more than the positions! ';
-        }
-        const pattern = /^[a-zA-Z0-9\-_]+(\.[a-zA-Z0-9\-_]+)*@[a-z0-9]+(\-[a-z0-9]+)*(\.[a-z0-9]+(\-[a-z0-9]+)*)*\.[a-z]{2,4}$/;
-        if (!(pattern.test(newJob.recruiteremail))) {
-          errMsg += 'Invalid email format! ';
-        }
-
-        if (errMsg != '') {
-          return res.status(400)
-              .send({error: 'Form Validation Failed! ' + errMsg});
-        }
-
-        newJob.save(function(err, job) {
-          if (err) {
-            console.log(err);
-            res.status(400).send({error: err.message});
-          } else {
-            recruiter.jobs.push(job._id);
-            recruiter.save();
-            res.status(201).json(job);
+          if (!(['Full-Time', 'Part-Time', 'WFH'].includes(newJob.type))) {
+            errMsg += 'Select Valid Job Type! ';
           }
-        });
-      }
+          if (newJob.limit.applications < newJob.limit.positions) {
+            errMsg += 'Max number of applications should be more than the positions! ';
+          }
+          const pattern = /^[a-zA-Z0-9\-_]+(\.[a-zA-Z0-9\-_]+)*@[a-z0-9]+(\-[a-z0-9]+)*(\.[a-z0-9]+(\-[a-z0-9]+)*)*\.[a-z]{2,4}$/;
+          if (!(pattern.test(newJob.recruiteremail))) {
+            errMsg += 'Invalid email format! ';
+          }
+
+          if (errMsg != '') {
+            return res.status(400)
+                .send({error: 'Form Validation Failed! ' + errMsg});
+          }
+
+          newJob.save(function(err, job) {
+            if (err) {
+              console.log(err);
+              res.status(400).send({error: err.message});
+            } else {
+              recruiter.jobs.push(job._id);
+              recruiter.save();
+              res.status(201).json(job);
+            }
+          });
+        } else {
+          res.status(403).send({error: 'Password Incorrect'});
+        }
+      });
     }
   });
 });
 
 
 router.post('/:id/edit', (req, res) => {
-  const recruiterKey = req.body.password;
+  const password = req.body.password;
   const email = req.body.email;
   const limit = req.body.limit;
   const deadline = req.body.deadline;
@@ -145,20 +155,33 @@ router.post('/:id/edit', (req, res) => {
                 // How did we get here?
                 res.status(500).send({error: 'This Job doesn\'t belong to anybody!'});
               } else {
-                if (owner.password != recruiterKey) {
-                  res.status(403).send({error: 'You are not authorised [Wrong Password]!'});
-                } else {
-                  job.limit = limit;
-                  job.deadline = Date.parse(deadline);
+                bcrypt.compare(password, owner.password).then((isMatch) => {
+                  if (isMatch) {
+                    job.limit = limit;
+                    job.deadline = Date.parse(deadline);
 
-                  job.save(function(err) {
-                    if (err) {
-                      res.status(400).send({error: 'Couldn\'t edit job : ' + err});
-                    } else {
-                      res.status(200).send({error: 'Job Listing Updated!'});
+                    errMsg = '';
+
+                    if (job.limit.applications < job.limit.positions) {
+                      errMsg += 'Max number of applications should be more than the positions! ';
                     }
-                  });
-                }
+
+                    if (errMsg != '') {
+                      return res.status(400)
+                          .send({error: 'Form Validation Failed! ' + errMsg});
+                    }
+
+                    job.save(function(err) {
+                      if (err) {
+                        res.status(400).send({error: 'Couldn\'t edit job : ' + err});
+                      } else {
+                        res.status(200).send({error: 'Job Listing Updated!'});
+                      }
+                    });
+                  } else {
+                    res.status(403).send({error: 'Password Incorrect'});
+                  }
+                });
               }
             });
           } else {
@@ -169,7 +192,7 @@ router.post('/:id/edit', (req, res) => {
 });
 
 router.post('/:id/rate', (req, res) => {
-  const applicantKey = req.body.password;
+  const password = req.body.password;
   const email = req.body.email;
   const applicationid = req.body.applicationid;
   const jobid = req.params.id;
@@ -199,27 +222,28 @@ router.post('/:id/rate', (req, res) => {
                       res.status(404)
                           .send({error: 'This applicant doesn\'t exist'});
                     } else {
-                      if (applicant.password != applicantKey) {
-                        res.status(403)
-                            .send({error: 'You are not authorised [Wrong Password]!'});
-                      } else {
-                        if (applicant._id != application._applicant) {
-                          res.status(403)
-                              .send({error: 'You did not make this application!'});
+                      bcrypt.compare(password, applicant.password).then((isMatch) => {
+                        if (isMatch) {
+                          if (applicant._id.toString() != application._applicant.toString()) {
+                            res.status(403)
+                                .send({error: 'You did not make this application!'});
+                          } else {
+                            job.rating = (job.rating * job.ratedBy + rating) / (job.ratedBy + 1);
+                            job.ratedBy += 1;
+                            job.save(function(err) {
+                              if (err) {
+                                res.status(400)
+                                    .send({error: 'Couldn\'t rate job : ' + err});
+                              } else {
+                                res.status(200)
+                                    .send({error: 'Job has been rated!'});
+                              }
+                            });
+                          }
                         } else {
-                          job.rating = (job.rating * job.ratedBy + rating) / (job.ratedBy + 1);
-                          job.ratedBy += 1;
-                          job.save(function(err) {
-                            if (err) {
-                              res.status(400)
-                                  .send({error: 'Couldn\'t rate job : ' + err});
-                            } else {
-                              res.status(200)
-                                  .send({error: 'Job has been rated!'});
-                            }
-                          });
+                          res.status(403).send({error: 'Password Incorrect'});
                         }
-                      }
+                      });
                     }
                   });
                 }
@@ -228,59 +252,8 @@ router.post('/:id/rate', (req, res) => {
       });
 });
 
-router.post('/:id/addapplication', (req, res) => {
-  const applicantKey = req.body.password;
-  const email = req.body.email;
-  const application = req.body.application;
-  if (application) {
-    application.populate('_applicant');
-  } else {
-    return res.status(400).send({error: 'No application given'});
-  }
-
-  Job.findById(req.params.id)
-      .then((job) => {
-        if (!job) {
-          return res.status(404).send({
-            error: 'Job doesn\'t exist!',
-          });
-        } else {
-          if (application._applicant.email == email) {
-            Applicant.findOne({email: email}).then((owner) => {
-              if (!owner) {
-                // How did we get here?
-                res.status(500)
-                    .send({error: 'This Application doesn\'t belong to anybody!'});
-              } else {
-                if (owner.password != applicantKey) {
-                  res.status(403)
-                      .send({error: 'You are not authorised [Wrong Password]!'});
-                } else {
-                  job.count.applications += 1;
-                  job.application.push(application._id);
-
-                  job.save(function(err) {
-                    if (err) {
-                      res.status(400)
-                          .send({error: 'Couldn\'t edit job : ' + err});
-                    } else {
-                      res.status(201)
-                          .send({error: 'Application successfully added!'});
-                    }
-                  });
-                }
-              }
-            });
-          } else {
-            res.status(403).json({error: 'You are not authorised!'});
-          }
-        }
-      });
-});
-
-
 router.delete('/:id', (req, res) => {
-  const recruiterKey = req.body.password;
+  const password = req.body.password;
   const email = req.body.email;
 
   Job.findById(req.params.id)
@@ -291,20 +264,39 @@ router.delete('/:id', (req, res) => {
               // How did we get here?
               res.status(500).send({error: 'This Job doesn\'t belong to anybody!'});
             } else {
-              if (owner.password != recruiterKey) {
-                res.status(403).send({error: 'You are not authorised [Wrong Password]!'});
-              } else {
-                Recruiter.updateOne({_id: owner._id}, {$pullAll: {jobs: [job._id]}}).then(() => {
-                  try {
-                    job.delete();
-                    res.status(201).send({error: 'Job Listing Deleted!'});
-                  } catch (err) {
-                    res.status(400).send({error: 'Couldn\'t delete job : ' + err});
-                  }
-                }).catch((err) => {
-                  res.status(400).send({error: 'Could not update recruiter!: ' + err});
-                });
-              }
+              bcrypt.compare(password, owner.password).then((isMatch) => {
+                if (isMatch) {
+                  Recruiter.updateOne({_id: owner._id}, {$pullAll: {jobs: [job._id]}}).then(() => {
+                    try {
+                      job.applications.forEach((appl) => {
+                        Application.findById(appl).populate('_applicant').then((application)=>{
+                          Applicant.findById(application._applicant).then((applicant) => {
+                            const index = applicant.applications.indexOf(appl);
+                            applicant.isHired = false;
+                            if (index >= 0) {
+                              applicant.applications.splice( index, 1 );
+                            }
+                            applicant.save();
+                          });
+                          owner.employees.forEach((employee, index) => {
+                            owner.employees.splice(index, 1);
+                          }, owner.employees);
+                          application.delete();
+                          owner.save();
+                        });
+                      });
+                      job.delete();
+                      res.status(201).send({error: 'Job Listing Deleted!'});
+                    } catch (err) {
+                      res.status(400).send({error: 'Couldn\'t delete job : ' + err});
+                    }
+                  }).catch((err) => {
+                    res.status(400).send({error: 'Could not update recruiter!: ' + err});
+                  });
+                } else {
+                  res.status(403).send({error: 'Password Incorrect'});
+                }
+              });
             }
           });
         } else {

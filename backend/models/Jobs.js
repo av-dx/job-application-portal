@@ -6,7 +6,7 @@ const JobSchema = new Schema({
   title: {type: String, required: true, minlength: 1},
   recruitername: {type: String, required: true, minlength: 1},
   /* TODO: Email integrity check? */
-  recruiteremail: {type: String, required: true, match: /^[a-zA-Z0-9\-_]+(\.[a-zA-Z0-9\-_]+)*@[a-z0-9]+(\-[a-z0-9]+)*(\.[a-z0-9]+(\-[a-z0-9]+)*)*\.[a-z]{2,4}$/},
+  recruiteremail: {type: String, required: true, match: /^[\w\-]+(\.[\w\-]+)*@[a-z0-9]+(\-[a-z0-9]+)*(\.[a-z0-9]+(\-[a-z0-9]+)*)*\.[a-z]{2,4}$/},
   count: {
     applications: {type: Number, required: true, min: 0},
     positions: {type: Number, required: true, min: 0},
@@ -21,9 +21,10 @@ const JobSchema = new Schema({
   type: {type: String, required: true, enum: ['Full-Time', 'Part-Time', 'WFH']},
   duration: {type: Number, required: true, min: 0, max: 6},
   salary: {type: Number, required: true, min: 0},
-  rating: {type: Number, required: false, min: 0},
-  ratedBy: {type: Number, required: false, min: 0},
+  rating: {type: Number, required: true, min: 0},
+  ratedBy: {type: Number, required: true, min: 0},
   applications: [{type: Schema.Types.ObjectId, ref: 'Application'}],
+  active: {type: Boolean, required: true},
 });
 
 module.exports = Job = mongoose.model('Jobs', JobSchema);

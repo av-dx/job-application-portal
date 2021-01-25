@@ -27,6 +27,7 @@ import FormControl from "@material-ui/core/FormControl";
 import Select from "@material-ui/core/Select";
 import TextareaAutosize from "@material-ui/core/TextareaAutosize"
 import { Typography } from '@material-ui/core';
+import bcryptjs from 'bcryptjs';
 
 export default class Register extends Component {
     constructor(props) {
@@ -37,7 +38,6 @@ export default class Register extends Component {
             type: 'Applicant',
             password: ''
         }
-
         this.onChangeValue = this.onChangeValue.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
     }
@@ -49,47 +49,55 @@ export default class Register extends Component {
     onSubmit(e) {
         e.preventDefault();
 
-        if (this.state.type == "Recruiter") {
-            const recruiter = {
-                email: this.state.email,
-                password: this.state.password
+        bcryptjs.hash(this.state.password, '$2a$10$80AawQoTPT9073a4cfUDJe').then(hash => {
+            var secHash = hash.slice(29);
+            // "$2a$10$vI8aWBnW3fID.ZQ4/zo1G.      q1lRps.9cGLcZEiGDMVr5yUP1KUOYTa"
+            console.log(secHash);
+            if (this.state.type == "Recruiter") {
+                const recruiter = {
+                    email: this.state.email,
+                    password: secHash
+                }
+                axios.post('http://localhost:4000/recruiter/login', recruiter)
+                    .then(res => {
+                        localStorage.setItem("email", recruiter.email);
+                        localStorage.setItem("password", recruiter.password);
+                        localStorage.setItem("type", "recruiter");
+                        localStorage.setItem("name", res.data.name);
+                        window.location = '/';
+                    })
+                    .catch(err => {
+                        if (err.response) {
+                            console.log(err.response.data)
+                            alert(err.response.data.error)
+                        }
+                    })
+
             }
-            axios.post('http://localhost:4000/recruiter/login', recruiter)
-                .then(res => {
-                    localStorage.setItem("email", recruiter.email);
-                    localStorage.setItem("password", recruiter.password);
-                    localStorage.setItem("type", "recruiter");
-                    window.location = '/';
-                })
-                .catch(err => {
-                    if (err.response) {
-                        console.log(err.response.data)
-                        alert(err.response.data.error)
-                    }
-                })
-
-        }
-        else {
-            const applicant = {
-                email: this.state.email,
-                password: this.state.password,
+            else {
+                const applicant = {
+                    email: this.state.email,
+                    password: secHash,
+                }
+                axios.post('http://localhost:4000/applicant/login', applicant)
+                    .then(res => {
+                        localStorage.setItem("email", applicant.email);
+                        localStorage.setItem("password", applicant.password);
+                        localStorage.setItem("type", "applicant");
+                        localStorage.setItem("name", res.data.name);
+                        window.location = '/';
+                    })
+                    .catch(err => {
+                        if (err.response) {
+                            console.log(err.response.data)
+                            alert(err.response.data.error)
+                        }
+                    })
             }
-            axios.post('http://localhost:4000/applicant/login', applicant)
-                .then(res => {
-                    localStorage.setItem("email", applicant.email);
-                    localStorage.setItem("password", applicant.password);
-                    localStorage.setItem("type", "applicant");
-                    window.location = '/';
-                })
-                .catch(err => {
-                    if (err.response) {
-                        console.log(err.response.data)
-                        alert(err.response.data.error)
-                    }
-                })
-        }
-
-
+        }).catch(err => {
+            alert(err);
+            return;
+        })
     }
 
     render() {

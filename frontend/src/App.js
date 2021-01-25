@@ -6,6 +6,7 @@ import ApplicantDashboard from './components/Users/ApplicantDashboard'
 import Home from './components/Common/Home'
 import Register from './components/Common/Register'
 import Login from './components/Common/Login'
+import Logout from './components/Common/Logout'
 import Navbar from './components/templates/Navbar'
 import ApplicantProfile from './components/Users/ApplicantProfile'
 import EditApplicantProfile from './components/Users/EditApplicantProfile'
@@ -27,6 +28,7 @@ function App() {
         <Route path="/" exact component={Home} />
         <Route path="/register" component={Register} />
         <Route path="/login" component={Login} />
+        <Route path="/logout" component={Logout} />
         <Route path="/profile" exact component={(localStorage.getItem("type") == "recruiter") ? RecruiterProfile : ApplicantProfile} />
         <Route path="/profile/edit" exact component={(localStorage.getItem("type") == "recruiter") ? EditRecruiterProfile : EditApplicantProfile} />
         <Route path="/dashboard" component={(localStorage.getItem("type") == "recruiter") ? RecruiterDashboard : ApplicantDashboard} />

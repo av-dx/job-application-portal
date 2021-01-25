@@ -69,8 +69,8 @@ export default class NewApplication extends Component {
 
         const newApplication = {
             jobid: this.state.job._id,
-            applicantemail: localStorage.getItem("email"),
-            applicantKey: localStorage.getItem("password"),
+            email: localStorage.getItem("email"),
+            password: localStorage.getItem("password"),
             sop: this.state.sop,
         }
         axios.post('http://localhost:4000/application/create', newApplication)

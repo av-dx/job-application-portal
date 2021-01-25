@@ -80,8 +80,8 @@ export default class NewJob extends Component {
 
         const newJob = {
             title: this.state.title,
-            recruiteremail: localStorage.getItem("email"),
-            recruiterKey: localStorage.getItem("password"),
+            email: localStorage.getItem("email"),
+            password: localStorage.getItem("password"),
             count: { applications: 0, positions: 0 },
             limit: {
                 applications: this.state.limit_applications,

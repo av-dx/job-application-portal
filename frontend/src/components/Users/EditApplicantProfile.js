@@ -23,19 +23,22 @@ import { InputLabel } from '@material-ui/core';
 import FormControl from '@material-ui/core/FormControl'
 import Rating from '@material-ui/lab/Rating'
 import FormHelperText from '@material-ui/core/FormHelperText'
+import ClearIcon from '@material-ui/icons/Clear'
 
 class EditApplicantProfile extends Component {
 
     constructor(props) {
         super(props);
         this.state = {
+            _id: '',
             name: '',
             email: '',
             education: [],
-            skills: [],
+            skills: new Set(),
             rating: 0,
             resume: [],
-            profilepic: ''
+            profilepic: '',
+            presetskills: ['C++', 'Java', 'Python']
         }
 
         this.onChangeValue = this.onChangeValue.bind(this);
@@ -70,7 +73,7 @@ class EditApplicantProfile extends Component {
             curemail: localStorage.getItem("email"),
             email: this.state.email,
             education: this.state.education,
-            skills: this.state.skills,
+            skills: Array.from(this.state.skills),
             password: localStorage.getItem("password"),
         }
         axios.post('http://localhost:4000/applicant/edit', newApplicant)
@@ -104,9 +107,23 @@ class EditApplicantProfile extends Component {
                 <Grid container alignItems="center" spacing={6}>
                     <Grid item xs={4}>
                         <InputLabel>Profile Picture</InputLabel>
-                        <div style={{ width: 200, height: 200, background: "blue" }}></div>
+                        <img width={300} src={"http://localhost:4000/applicant/profilepic/" + this.state._id} />
+                        <FormHelperText>
+                            <input type="file" accept=".png, .jpg, .jpeg" name="profilepic" onChange={(event) => {
+                                const newPhoto = new FormData();
+                                newPhoto.append('curemail', localStorage.getItem("email"));
+                                newPhoto.append('password', localStorage.getItem("password"));
+                                newPhoto.append('profilepic', event.target.files[0]);
+                                axios.post('http://localhost:4000/applicant/uploadphoto', newPhoto).then(done => {
+                                    alert("Photo uploaded!");
+                                })
+                                    .catch(function (error) {
+                                        console.log(error);
+                                        alert(error.response.data.error);
+                                    })
+                            }} />
+                        </FormHelperText>
                     </Grid>
-
                     <Grid item xs={8}>
                         <Grid container spacing={6}>
                             <Grid item xs={6}>
@@ -133,16 +150,66 @@ class EditApplicantProfile extends Component {
                                     required
                                 />
                             </Grid>
-                            <Grid item xs={6}>
-                                <TextField
-                                    variant="outlined"
-                                    value={this.state.skills}
-                                    name="skills"
-                                    label="Skills"
-                                    onChange={this.onChangeValue}
-                                    className="form-control"
-                                    required
+                            <Grid item xs={12}>
+                                {[...this.state.skills].map((skill, ind) => {
+                                    return (
+                                        <Button
+                                            key={ind}
+                                            variant="contained"
+                                            style={{ height: 40 }}
+                                            endIcon={
+                                                <IconButton
+                                                    color="secondary"
+                                                    onClick={() => {
+                                                        var skills = new Set(this.state.skills);
+                                                        skills.delete(skill);
+                                                        this.setState({ skills: skills });
+                                                    }}>
+                                                    <ClearIcon />
+                                                </IconButton>}
+                                        >
+                                            {skill}
+                                        </Button>
+                                    )
+                                })}
+                            </Grid>
+                            <Grid item xs={8}>
+                                <Autocomplete
+                                    freeSolo
+                                    autoComplete
+                                    autoSelect
+                                    options={this.state.presetskills}
+                                    value={this.state.skilltoadd}
+                                    onChange={(event, value) => {
+                                        this.setState({ skilltoadd: value });
+                                    }}
+                                    name="skilltoadd"
+                                    renderInput={(params) => (
+                                        <TextField {...params}
+                                            label="Skill"
+                                            variant="outlined"
+                                        />
+
+                                    )
+                                    }
                                 />
+                            </Grid>
+                            <Grid item xs={2}>
+                                <Button
+                                    type="submit"
+                                    fullWidth
+                                    size="large"
+                                    color="Primary"
+                                    variant="contained"
+                                    onClick={() => {
+                                        if ((this.state.skilltoadd != '') && (this.state.skilltoadd != undefined)) {
+                                            var skills = new Set(this.state.skills);
+                                            skills.add(this.state.skilltoadd);
+                                            this.setState({ skills: skills, skilltoadd: '' });
+                                        }
+                                    }}>
+                                    Add this skill
+                        </Button>
                             </Grid>
                             <Grid item xs={6}>
                             </Grid>
@@ -151,19 +218,36 @@ class EditApplicantProfile extends Component {
                     <Grid item xs={12}>
                         <InputLabel>Education Details</InputLabel>
                         <Grid container spacing={6}>
+                            <Grid item xs={4}>
+                                <Button
+                                    type="button"
+                                    fullWidth
+                                    size="large"
+                                    color="primary"
+                                    variant="contained"
+                                    onClick={this.onAddEducation}>
+                                    Add an Education
+                            </Button>
+                            </Grid>
                             <Grid item xs={12}>
                                 <Grid container spacing={6}>
                                     {this.state.education.map((edu, ind) => {
                                         return (
                                             <Grid container item spacing={3} key={ind}>
                                                 <Grid item xs={1} sm={1}>
-                                                    <TextField
-                                                        variant="outlined"
-                                                        value={ind + 1}
-                                                        className="form-control"
-                                                    />
+                                                    <Button
+                                                        variant="contained"
+                                                        color="secondary"
+                                                        onClick={() => {
+                                                            var educations = [...this.state.education]
+                                                            educations.splice(ind, 1);
+                                                            this.setState({ education: educations });
+                                                        }}
+                                                        id={ind}
+                                                    > Remove
+                                            </Button>
                                                 </Grid>
-                                                <Grid item xs={11} sm={5}>
+                                                <Grid item xs={11} sm={4}>
                                                     <TextField
                                                         variant="outlined"
                                                         label="Institute Name"

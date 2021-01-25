@@ -28,6 +28,7 @@ class ApplicantProfile extends Component {
     constructor(props) {
         super(props);
         this.state = {
+            _id: '',
             name: '',
             email: '',
             education: [],
@@ -55,7 +56,7 @@ class ApplicantProfile extends Component {
                 <Grid container alignItems="center" spacing={6}>
                     <Grid item xs={4}>
                         <InputLabel>Profile Picture</InputLabel>
-                        <div style={{ width: 200, height: 200, background: "blue" }}></div>
+                        <img width={300} src={"http://localhost:4000/applicant/profilepic/"+this.state._id}/>
                     </Grid>
 
                     <Grid item xs={8}>
@@ -91,7 +92,8 @@ class ApplicantProfile extends Component {
                                 <InputLabel>Rating</InputLabel>
                                 <Rating
                                     name="rating"
-                                    value={this.state.value}
+                                    value={this.state.rating}
+                                    precision={0.5}
                                     size="large"
                                     readOnly
                                 />

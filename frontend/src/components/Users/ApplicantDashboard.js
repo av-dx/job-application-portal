@@ -336,7 +336,7 @@ class ApplicantDashboard extends Component {
                                             <TableCell>{job.duration}</TableCell>
                                             <TableCell>{job.salary}</TableCell>
                                             <TableCell>{job.deadline}</TableCell>
-                                            <TableCell><Rating value={job.rating} readOnly></Rating>{job.rating}</TableCell>
+                                            <TableCell><Rating value={job.rating} readOnly></Rating>{Number.parseFloat(job.rating).toFixed(1)}</TableCell>
                                             <TableCell>
                                                 {(this.state.appliedJobs.includes(job._id)) ?
                                                     <Button variant="contained" color="default">Applied</Button>

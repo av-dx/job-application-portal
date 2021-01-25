@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
@@ -159,14 +160,13 @@ router.post('/register', (req, res) => {
         email: req.body.email,
         password: req.body.password,
       });
-      // Hash password before saving in database
       bcrypt.genSalt(10, (err, salt) => {
         bcrypt.hash(newRecruiter.password, salt, (err, hash) => {
           if (err) throw err;
           newRecruiter.password = hash;
           newRecruiter
               .save()
-              .then((recruiter) => res.json(recruiter))
+              .then((recruiter) => res.status(201).json(recruiter))
               .catch((err) => {
                 console.log(err.message);
                 res.status(400).send({error: err.message});

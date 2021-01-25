@@ -18,14 +18,17 @@ export default class NavBar extends Component {
                             <li className="navbar-item">
                                 <Link to="/dashboard" className="nav-link">Dashboard</Link>
                             </li>
-                            <li className="navbar-item">
+                            <li className="navbar-item" hidden={(localStorage.getItem("name"))}>
                                 <Link to="/register" className="nav-link">Register</Link>
                             </li>
-                            <li className="navbar-item">
-                                <Link to="/login" className="nav-link">Login</Link>
+                            <li className="navbar-item" hidden={(localStorage.getItem("name"))}>
+                                <Link to="/login" className="nav-link" >Login</Link>
                             </li>
-                            <li className="navbar-item">
-                                <Link to="/profile" className="nav-link">{localStorage.getItem("email")}</Link>
+                            <li className="navbar-item" hidden={!(localStorage.getItem("name"))}>
+                                <Link to="/profile" className="nav-link">{localStorage.getItem("name")}</Link>
+                            </li>
+                            <li  className="navbar-item mr-sm-2" hidden={!(localStorage.getItem("name"))}>
+                                <Link to="/logout" className="nav-link">Logout</Link>
                             </li>
                         </ul>
                     </div>

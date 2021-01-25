@@ -10,7 +10,7 @@ const EducationSchema = new Schema({
 // Create Schema
 const ApplicantSchema = new Schema({
   name: {type: String, required: true, minlength: 1},
-  email: {type: String, required: true, unique: true, match: /^[a-zA-Z0-9\-_]+(\.[a-zA-Z0-9\-_]+)*@[a-z0-9]+(\-[a-z0-9]+)*(\.[a-z0-9]+(\-[a-z0-9]+)*)*\.[a-z]{2,4}$/},
+  email: {type: String, required: true, unique: true, match: /^[\w\-]+(\.[\w\-]+)*@[a-z0-9]+(\-[a-z0-9]+)*(\.[a-z0-9]+(\-[a-z0-9]+)*)*\.[a-z]{2,4}$/},
   education: [EducationSchema],
   skills: [String],
   rating: {type: Number, required: false},
@@ -21,6 +21,7 @@ const ApplicantSchema = new Schema({
   password: {type: String, required: true},
   date: {type: Date, required: false},
   doj: {type: Date, required: false},
+  isHired: {type: Boolean, required: true},
 });
 
 module.exports = Applicant = mongoose.model('Applicants', ApplicantSchema);

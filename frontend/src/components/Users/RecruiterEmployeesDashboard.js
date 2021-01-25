@@ -57,7 +57,7 @@ class RecruiterEmployeesDashboard extends Component {
         var empArray = [...this.state.employees];
         empArray[index].rating = event.target.value;
 
-        axios.post('http://localhost:4000/recruiter/rate/' + id, {
+        axios.post('http://localhost:4000/recruiter/rateemployee/' + id, {
             email: localStorage.getItem("email"),
             password: localStorage.getItem("password"),
             rating: event.target.value,
@@ -65,7 +65,7 @@ class RecruiterEmployeesDashboard extends Component {
             alert(response.data.error);
             this.setState({ employees: empArray })
         }).catch(error => {
-            alert(error);
+            alert(error.response.data.error);
         })
     }
 

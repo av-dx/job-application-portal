@@ -1,10 +1,23 @@
 /* eslint-disable max-len */
 const express = require('express');
 const router = express.Router();
-
+const bcrypt = require('bcryptjs');
+const multer = require('multer');
 
 const Applicant = require('../models/Applicant');
 
+const storage = multer.diskStorage({
+  destination: function(req, file, cb) {
+    cb(null, __dirname + '/images/');
+  },
+});
+
+const fileFilter = (req, file, cb) => {
+  const allowedFileTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+  cb(null, allowedFileTypes.includes(file.mimetype));
+};
+
+const upload = multer({storage, fileFilter});
 
 router.get('/', function(req, res) {
   Applicant.find(function(err, applicants) {
@@ -12,6 +25,76 @@ router.get('/', function(req, res) {
       console.log(err);
     } else {
       res.status(200).json(applicants);
+    }
+  });
+});
+
+
+router.post('/uploadphoto', upload.single('profilepic'), function(req, res) {
+  const profilepic = req.file.filename;
+  Applicant.findOne({email: req.body.curemail}).then((applicant) => {
+    if (!applicant) {
+      return res.status(404).send({
+        error: 'Email not found',
+      });
+    } else {
+      bcrypt.compare(req.body.password, applicant.password).then((isMatch) => {
+        if (isMatch) {
+          applicant.profilepic = profilepic;
+
+          applicant.save(function(err) {
+            if (err) {
+              return res.status(400).send({error: 'Couldn\'t edit applicant : ' + err});
+            } else {
+              return res.status(200).send({error: 'Applicant info Updated!'});
+            }
+          });
+        } else {
+          res.status(403).send({error: 'Password Incorrect'});
+        }
+      });
+    }
+  });
+});
+
+
+router.post('/edit', function(req, res) {
+  Applicant.findOne({email: req.body.curemail}).then((applicant) => {
+    if (!applicant) {
+      return res.status(404).send({
+        error: 'Email not found',
+      });
+    } else {
+      bcrypt.compare(req.body.password, applicant.password).then((isMatch) => {
+        if (isMatch) {
+          applicant.name = req.body.name;
+          applicant.email = req.body.email;
+          applicant.skills = req.body.skills;
+          applicant.education = req.body.education;
+
+          errMsg = '';
+
+          applicant.education.forEach((edu) => {
+            if ((edu.endYear != '') && (edu.endYear != undefined) && (edu.endYear < edu.startYear)) {
+              errMsg += 'End Year cannot be less than the start year! ';
+            }
+          });
+
+          if (errMsg != '') {
+            return res.status(400).send({error: 'Form Validation Failed! ' + errMsg});
+          }
+
+          applicant.save(function(err) {
+            if (err) {
+              return res.status(400).send({error: 'Couldn\'t edit applicant : ' + err});
+            } else {
+              return res.status(200).send({error: 'Applicant info Updated!'});
+            }
+          });
+        } else {
+          res.status(403).send({error: 'Password Incorrect'});
+        }
+      });
     }
   });
 });
@@ -26,55 +109,21 @@ router.post('/postedapplications', function(req, res) {
             error: 'Email not found',
           });
         } else {
-          if (applicant.password != req.body.password) {
-            return res.status(403).send({
-              error: 'Password Incorrect',
-            });
-          } else {
-            applicant.applications.forEach((appl, index) => {
-              applicant.applications[index]._job.applications = undefined;
-              applicant.applications[index]._job.count = undefined;
-            });
-            console.log(applicant.applications);
-            res.status(200).send(applicant.applications);
-          }
+          bcrypt.compare(req.body.password, applicant.password).then((isMatch) => {
+            if (isMatch) {
+              applicant.applications.forEach((appl, index) => {
+                applicant.applications[index]._job.applications = undefined;
+                applicant.applications[index]._job.count = undefined;
+              });
+              console.log(applicant.applications);
+              res.status(200).send(applicant.applications);
+            } else {
+              res.status(403).send({error: 'Password Incorrect'});
+            }
+          });
         }
       });
 });
-
-
-router.post('/edit', function(req, res) {
-  Applicant.findOne({email: req.body.curemail}).then((applicant) => {
-    if (!applicant) {
-      return res.status(404).send({
-        error: 'Email not found',
-      });
-    } else {
-      if (applicant.password != req.body.password) {
-        return res.status(403).send({
-          error: 'Password Incorrect',
-        });
-      } else {
-        applicant.name = req.body.name;
-        applicant.email = req.body.email;
-        applicant.password = req.body.password;
-        applicant.skills = req.body.skills;
-        applicant.education = req.body.education;
-
-        applicant.save(function(err) {
-          if (err) {
-            return res.status(400).send({error: 'Couldn\'t edit applicant : ' + err});
-          } else {
-            return res.status(200).send({error: 'Applicant info Updated!'});
-          }
-        });
-      }
-    }
-  });
-});
-
-/* TODO: Get consistency on password, applicantKey, etc conventions */
-
 
 router.post('/register', (req, res) => {
   const newApplicant = new Applicant({
@@ -89,6 +138,7 @@ router.post('/register', (req, res) => {
     applications: [],
     /* TODO: Useless date ? */
     date: Date.now(),
+    isHired: false,
   });
 
   errMsg = '';
@@ -104,26 +154,23 @@ router.post('/register', (req, res) => {
   }
 
   if (errMsg != '') {
-    return res.status(201).send({error: 'Form Validation Failed! ' + errMsg});
-  }
-
-
-  if (errMsg != '') {
     return res.status(400).send({error: 'Form Validation Failed! ' + errMsg});
   }
 
-
-  newApplicant.save()
-      .then((applicant) => {
-        res.status(201).json(applicant);
-      })
-      .catch((err) => {
-        res.status(400).send(err);
-      });
+  bcrypt.genSalt(10, (err, salt) => {
+    bcrypt.hash(newApplicant.password, salt, (err, hash) => {
+      if (err) throw err;
+      newApplicant.password = hash;
+      newApplicant
+          .save()
+          .then((applicant) => res.status(201).json(applicant))
+          .catch((err) => {
+            console.log(err.message);
+            res.status(400).send({error: err.message});
+          });
+    });
+  });
 });
-
-/* TODO: Make all auth with hashKey + user _ids */
-
 
 router.post('/login', (req, res) => {
   const password = req.body.password;
@@ -134,23 +181,50 @@ router.post('/login', (req, res) => {
         error: 'Email not found',
       });
     } else {
-      if (applicant.password != password) {
-        res.status(403).send({error: 'Password Incorrect'});
-      } else {
-        /* TODO: cleaner way to delete just one key */
-        res.status(200).send({
-          name: applicant.name,
-          email: applicant.email,
-          education: applicant.education,
-          skills: applicant.skills,
-          rating: applicant.rating,
-          resume: applicant.resume,
-          profilepic: applicant.profilepic,
-          applications: applicant.applications,
+      bcrypt.compare(password, applicant.password).then((isMatch) => {
+        if (isMatch) {
+          res.status(200).send({
+            _id: applicant._id,
+            name: applicant.name,
+            email: applicant.email,
+            education: applicant.education,
+            skills: applicant.skills,
+            rating: applicant.rating,
+            resume: applicant.resume,
+            profilepic: applicant.profilepic,
+            applications: applicant.applications,
+            isHired: applicant.isHired,
+          });
+        } else {
+          res.status(403).send({error: 'Password Incorrect'});
+        }
+      });
+    }
+  });
+});
+
+
+router.get('/profilepic/:id', (req, res) => {
+  Applicant.findById(req.params.id).then((applicant) => {
+    if (!applicant) {
+      return res.status(404).send({
+        error: 'Email not found',
+      });
+    } else {
+      try {
+        res.set({
+          'Content-Type': 'image/png',
         });
+        res.status(200).sendFile(__dirname + '/images/' + applicant.profilepic, function(error) {
+          console.log(error);
+          res.status(404).sendFile(__dirname+'/images/placeholder');
+        });
+      } catch (error) {
+        console.log(error);
       }
     }
   });
 });
+
 
 module.exports = router;

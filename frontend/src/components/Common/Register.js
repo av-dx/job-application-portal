@@ -27,6 +27,9 @@ import FormControl from "@material-ui/core/FormControl";
 import Select from "@material-ui/core/Select";
 import TextareaAutosize from "@material-ui/core/TextareaAutosize"
 import { Typography } from '@material-ui/core';
+import ClearIcon from '@material-ui/icons/Clear';
+
+import bcryptjs from 'bcryptjs';
 
 export default class Register extends Component {
     constructor(props) {
@@ -38,16 +41,16 @@ export default class Register extends Component {
             type: 'Applicant',
             date: null,
             password: '',
-            education: [
-
-            ],
-            skills: [],
+            education: [],
+            skills: new Set(),
+            skilltoadd: 'C++',
             rating: 0,
             resume: [],
             profilepic: '',
             contact: '',
-            bio: ''
-
+            bio: '',
+            presetskills: ['C++', 'Java', 'Python'],
+            confirmPassword: '',
         }
 
         this.onChangeValue = this.onChangeValue.bind(this);
@@ -105,19 +108,64 @@ export default class Register extends Component {
         else {
             return (
                 <Grid container spacing={6}>
-                    <Grid item xs={6}>
-                        {/* TODO: Skill dropdown whatever */}
-                        <TextField className="form-control"
-                            variant="outlined"
-                            label="Skills"
-                            value={this.state.skills}
-                            onChange={this.onChangeValue}
-                            disabled
-                            name="skills"
+                    <Grid item xs={12}>
+                        {[...this.state.skills].map((skill, ind) => {
+                            return (
+                                <Button
+                                    key={ind}
+                                    variant="contained"
+                                    style={{ height: 40 }}
+                                    endIcon={
+                                        <IconButton
+                                            color="secondary"
+                                            onClick={() => {
+                                                var skills = new Set(this.state.skills);
+                                                skills.delete(skill);
+                                                this.setState({ skills: skills });
+                                            }}>
+                                            <ClearIcon />
+                                        </IconButton>}
+                                >
+                                    {skill}
+                                </Button>
+                            )
+                        })}
+                    </Grid>
+                    <Grid item xs={8}>
+                        <Autocomplete
+                            freeSolo
+                            autoComplete
+                            autoSelect
+                            options={this.state.presetskills}
+                            value={this.state.skilltoadd}
+                            onChange={(event, value) => {
+                                this.setState({ skilltoadd: value });
+                            }}
+                            name="skilltoadd"
+                            renderInput={(params) => (
+                                <TextField {...params}
+                                    label="Skill"
+                                    variant="outlined"
+                                />
+
+                            )
+                            }
                         />
                     </Grid>
-                    <Grid item xs={6}>
-
+                    <Grid item xs={2}>
+                        <Button
+                            type="submit"
+                            fullWidth
+                            size="large"
+                            color="Primary"
+                            variant="contained"
+                            onClick={() => {
+                                var skills = new Set(this.state.skills);
+                                skills.add(this.state.skilltoadd);
+                                this.setState({ skills: skills, skilltoadd: '' });
+                            }}>
+                            Add this skill
+                        </Button>
                     </Grid>
                     <Grid item xs={4}>
                         <Button
@@ -138,7 +186,20 @@ export default class Register extends Component {
                                     endID = "education[${ind}].endYear";
                                 return (
                                     <Grid container item spacing={6} key={ind}>
-                                        <Grid item xs={12} sm={5}>
+                                        <Grid item xs={1} sm={1}>
+                                            <Button
+                                                variant="contained"
+                                                color="secondary"
+                                                onClick={() => {
+                                                    var educations = [...this.state.education]
+                                                    educations.splice(ind, 1);
+                                                    this.setState({ education: educations });
+                                                }}
+                                                id={ind}
+                                            > Remove
+                                            </Button>
+                                        </Grid>
+                                        <Grid item xs={11} sm={4}>
                                             <TextField className="form-control"
                                                 variant="outlined"
                                                 label="Institute Name"
@@ -188,52 +249,88 @@ export default class Register extends Component {
     onSubmit(e) {
         e.preventDefault();
 
-        if (this.state.type == "Recruiter") {
-            const newRecruiter = {
-                name: this.state.name,
-                email: this.state.email,
-                contact: this.state.contact,
-                bio: this.state.bio,
-                password: this.state.password,
-                date: Date.now(),
-            }
-            axios.post('http://localhost:4000/recruiter/register', newRecruiter)
-                .then(res => {
-                    alert("Added a recruiter : " + res.data.name);
-                    console.log(res.data);
-                    window.location = '/';
-                })
-                .catch(err => {
-                    if (err) {
-                        alert(err.response.data.error);
-                    }
-                })
-
-        }
-        else {
-            const newApplicant = {
-                name: this.state.name,
-                email: this.state.email,
-                education: this.state.education,
-                skills: this.state.skills,
-                password: this.state.password,
-                date: Date.now(),
-            }
-            axios.post('http://localhost:4000/applicant/register', newApplicant)
-                .then(res => {
-                    alert("Added an applicant : " + res.data.name);
-                    console.log(res.data);
-                    window.location = '/';
-                })
-                .catch(err => {
-                    if (err.response) {
-                        console.log(err.response.data)
-                        alert(err.response.data.error)
-                    }
-                })
+        if (this.state.password != this.state.confirmPassword) {
+            alert("The passwords do not match!");
+            return;
         }
 
+        bcryptjs.hash(this.state.password, '$2a$10$80AawQoTPT9073a4cfUDJe').then(hash => {
+            var secHash = hash.slice(29);
+            if (this.state.type == "Recruiter") {
+                const newRecruiter = {
+                    name: this.state.name,
+                    email: this.state.email,
+                    contact: this.state.contact,
+                    bio: this.state.bio,
+                    password: secHash,
+                    date: Date.now(),
+                }
+                axios.post('http://localhost:4000/recruiter/register', newRecruiter)
+                    .then(res => {
+                        alert("Added a recruiter : " + res.data.name);
+                        console.log(res.data);
 
+                        axios.post('http://localhost:4000/recruiter/login', newRecruiter)
+                            .then(res => {
+                                localStorage.setItem("name", newRecruiter.name);
+                                localStorage.setItem("email", newRecruiter.email);
+                                localStorage.setItem("password", newRecruiter.password);
+                                localStorage.setItem("type", "recruiter");
+                                window.location = '/';
+                            })
+                            .catch(err => {
+                                if (err.response) {
+                                    console.log(err.response.data)
+                                    alert(err.response.data.error)
+                                }
+                            })
+                    })
+                    .catch(err => {
+                        if (err) {
+                            alert(err.response.data.error);
+                        }
+                    })
+            }
+            else {
+                const newApplicant = {
+                    name: this.state.name,
+                    email: this.state.email,
+                    education: this.state.education,
+                    skills: Array.from(this.state.skills),
+                    password: secHash,
+                    date: Date.now(),
+                }
+                axios.post('http://localhost:4000/applicant/register', newApplicant)
+                    .then(res => {
+                        alert("Added an applicant : " + res.data.name);
+                        console.log(res.data);
+
+                        axios.post('http://localhost:4000/applicant/login', newApplicant)
+                            .then(res => {
+                                localStorage.setItem("name", newApplicant.name);
+                                localStorage.setItem("email", newApplicant.email);
+                                localStorage.setItem("password", newApplicant.password);
+                                localStorage.setItem("type", "applicant");
+                                window.location = '/';
+                            })
+                            .catch(err => {
+                                if (err.response) {
+                                    console.log(err.response.data)
+                                    alert(err.response.data.error)
+                                }
+                            })
+                    })
+                    .catch(err => {
+                        if (err.response) {
+                            console.log(err.response.data)
+                            alert(err.response.data.error)
+                        }
+                    })
+            }
+        }).catch(err => {
+            alert(err);
+            return;
+        })
     }
 
     render() {
@@ -281,15 +378,30 @@ export default class Register extends Component {
                             {this.renderTypeBasedFields()}
                         </Grid>
                         <Grid item xs={12} sm={6}>
-                            <TextField className="form-control"
-                                variant="outlined"
-                                label="Password"
-                                value={this.state.password}
-                                onChange={this.onChangeValue}
-                                required
-                                name="password"
-                                type="password"
-                            />
+                            <Grid container spacing={3}>
+                                <Grid item xs={12}>
+                                    <TextField className="form-control"
+                                        variant="outlined"
+                                        label="Password"
+                                        value={this.state.password}
+                                        onChange={this.onChangeValue}
+                                        required
+                                        name="password"
+                                        type="password"
+                                    /></Grid>
+                                <Grid item xs={12}>
+                                    <TextField className="form-control"
+                                        variant="outlined"
+                                        label="Re-enter password"
+                                        value={this.state.confirmPassword}
+                                        onChange={this.onChangeValue}
+                                        required
+                                        name="confirmPassword"
+                                        type="password"
+                                    />
+                                </Grid>
+                            </Grid>
+
                         </Grid>
                         <Grid item xs={12} sm={6}> </Grid>
                         <Grid item xs={12} sm={3}>
