@@ -65,11 +65,6 @@ class EditRecruiterProfile extends Component {
         return (
             <div>
                 <Grid container alignItems="center" spacing={6}>
-                    <Grid item xs={4}>
-                        <InputLabel>Profile Picture</InputLabel>
-                        <div style={{ width: 200, height: 200, background: "blue" }}></div>
-                    </Grid>
-
                     <Grid item xs={8}>
                         <Grid container spacing={6}>
                             <Grid item xs={6}>
