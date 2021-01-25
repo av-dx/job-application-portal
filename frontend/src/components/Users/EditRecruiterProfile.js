@@ -38,6 +38,8 @@ class EditRecruiterProfile extends Component {
         }
         axios.post('http://localhost:4000/recruiter/edit', newRecruiter)
             .then(res => {
+                localStorage.setItem("email", newRecruiter.email);
+                localStorage.setItem("name", newRecruiter.name);
                 alert("Account info updated!");
                 console.log(res.data);
                 window.location = '/profile';

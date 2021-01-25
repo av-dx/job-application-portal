@@ -63,6 +63,8 @@ class EditApplicantProfile extends Component {
         }
         axios.post('http://localhost:4000/applicant/edit', newApplicant)
             .then(res => {
+                localStorage.setItem("email", newApplicant.email);
+                localStorage.setItem("name", newApplicant.name);
                 alert("Account info updated!");
                 console.log(res.data);
                 window.location = '/profile';
