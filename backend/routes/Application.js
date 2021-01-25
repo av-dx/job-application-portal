@@ -43,7 +43,7 @@ router.post('/create', (req, res) => {
           if (applicant.applications.length >= 1) {
             return res.status(403).send({error: 'You have made 10 applications already, cannot post another!'});
           }
-          if (new Date(job.deadline) > new Date(Date.now())) {
+          if (new Date(job.deadline) <= new Date(Date.now())) {
             return res.status(403).send({error: 'The deadline for submission of application is over!'});
           }
           bcrypt.compare(password, applicant.password).then((isMatch) => {
