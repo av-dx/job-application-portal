@@ -30,7 +30,7 @@ export default class Register extends Component {
             skills: new Set(),
             skilltoadd: 'C++',
             rating: 0,
-            resume: [],
+            resume: '',
             profilepic: '',
             contact: '',
             bio: '',

@@ -18,7 +18,7 @@ class ApplicantProfile extends Component {
             education: [],
             skills: [],
             rating: 0,
-            resume: [],
+            resume: '',
             profilepic: ''
         }
 

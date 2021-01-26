@@ -60,6 +60,7 @@ class RecruiterApplicationsDashboard extends Component {
             .then(response => {
                 var arr = [...this.state.applications];
                 arr[index].status = newStatus + "ed";
+                if (newStatus == "Reject") { arr.splice(index, 1); }
                 this.setState({
                     applications: arr,
                 })
@@ -180,6 +181,13 @@ class RecruiterApplicationsDashboard extends Component {
                                             <TableCell align="center"><Rating value={application._applicant.rating} readOnly></Rating></TableCell>
                                             <TableCell align="center">{application.status}</TableCell>
                                             <TableCell align="center">
+                                                <Button href={'http://localhost:4000/applicant/resume/' + application._applicant._id}
+                                                    download
+                                                    fullWidth
+                                                    variant="contained"
+                                                    color="default"
+                                                >Download Resume
+                                                </Button>
                                                 {(application.status == "Submitted") ?
                                                     <Button
                                                         color="primary"
@@ -203,7 +211,7 @@ class RecruiterApplicationsDashboard extends Component {
                                                             :
                                                             <div>Invalid state</div>
                                                 }
-                                                {(application.status == "Accepted") ?
+                                                {(["Accepted", "Rejected"].includes(application.status)) ?
                                                     <div></div>
                                                     :
                                                     <Button

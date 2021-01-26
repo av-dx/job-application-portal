@@ -7,17 +7,22 @@ const multer = require('multer');
 const Applicant = require('../models/Applicant');
 
 const storage = multer.diskStorage({
-  destination: function(req, file, cb) {
-    cb(null, __dirname + '/images/');
+  destination: function(req, file, callbackfn) {
+    callbackfn(null, __dirname + '/resources/');
   },
 });
 
-const fileFilter = (req, file, cb) => {
+const photoFileFilter = (req, file, callbackfn) => {
   const allowedFileTypes = ['image/jpeg', 'image/jpg', 'image/png'];
-  cb(null, allowedFileTypes.includes(file.mimetype));
+  callbackfn(null, allowedFileTypes.includes(file.mimetype));
+};
+const pdfFileFilter = (req, file, callbackfn) => {
+  const allowedFileTypes = ['application/pdf'];
+  callbackfn(null, allowedFileTypes.includes(file.mimetype));
 };
 
-const upload = multer({storage, fileFilter});
+const photoUpload = multer({storage, photoFileFilter});
+const pdfUpload = multer({storage, pdfFileFilter});
 
 router.get('/', function(req, res) {
   Applicant.find(function(err, applicants) {
@@ -30,7 +35,7 @@ router.get('/', function(req, res) {
 });
 
 
-router.post('/uploadphoto', upload.single('profilepic'), function(req, res) {
+router.post('/uploadphoto', photoUpload.single('profilepic'), function(req, res) {
   const profilepic = req.file.filename;
   Applicant.findById(req.body.userid).then((applicant) => {
     if (!applicant) {
@@ -41,6 +46,34 @@ router.post('/uploadphoto', upload.single('profilepic'), function(req, res) {
       bcrypt.compare(req.body.password, applicant.password).then((isMatch) => {
         if (isMatch) {
           applicant.profilepic = profilepic;
+
+          applicant.save(function(err) {
+            if (err) {
+              return res.status(400).send({error: 'Couldn\'t edit applicant : ' + err});
+            } else {
+              return res.status(200).send({error: 'Applicant info Updated!'});
+            }
+          });
+        } else {
+          res.status(403).send({error: 'Password Incorrect'});
+        }
+      });
+    }
+  });
+});
+
+
+router.post('/uploadresume', photoUpload.single('resume'), function(req, res) {
+  const resume = req.file.filename;
+  Applicant.findById(req.body.userid).then((applicant) => {
+    if (!applicant) {
+      return res.status(404).send({
+        error: 'Applicant not found',
+      });
+    } else {
+      bcrypt.compare(req.body.password, applicant.password).then((isMatch) => {
+        if (isMatch) {
+          applicant.resume = resume;
 
           applicant.save(function(err) {
             if (err) {
@@ -132,7 +165,7 @@ router.post('/register', (req, res) => {
     education: req.body.education,
     skills: req.body.skills,
     rating: 0,
-    resume: [],
+    resume: '',
     profilepic: '',
     password: req.body.password,
     _applications: [],
@@ -219,16 +252,18 @@ router.get('/profilepic/:id', (req, res) => {
   Applicant.findById(req.params.id).then((applicant) => {
     if (!applicant) {
       return res.status(404).send({
-        error: 'Email not found',
+        error: 'Applicant not found',
       });
     } else {
       try {
         res.set({
           'Content-Type': 'image/png',
         });
-        res.status(200).sendFile(__dirname + '/images/' + applicant.profilepic, function(error) {
-          console.log(error);
-          res.status(404).sendFile(__dirname+'/images/placeholder');
+        res.status(200).sendFile(__dirname + '/resources/' + applicant.profilepic, function(error) {
+          if (error) {
+            console.log(error);
+            res.status(404).sendFile(__dirname + '/resources/placeholder');
+          }
         });
       } catch (error) {
         console.log(error);
@@ -237,5 +272,27 @@ router.get('/profilepic/:id', (req, res) => {
   });
 });
 
-
+router.get('/resume/:id', (req, res) => {
+  Applicant.findById(req.params.id).then((applicant) => {
+    if (!applicant) {
+      return res.status(404).send({
+        error: 'Applicant not found',
+      });
+    } else {
+      try {
+        res.set({
+          'Content-Type': 'application/pdf',
+        });
+        res.status(200).sendFile(__dirname + '/resources/' + applicant.resume, function(error) {
+          if (error) {
+            console.log(error);
+            res.status(404).send('Could not fetch the resume of this applicant');
+          }
+        });
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  });
+});
 module.exports = router;

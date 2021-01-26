@@ -15,7 +15,7 @@ const ApplicantSchema = new Schema({
   skills: [String],
   rating: {type: Number, required: false},
   /* TODO: PDFs and Images*/
-  resume: [String],
+  resume: {type: String, required: false},
   profilepic: {type: String, required: false},
   _applications: [{type: Schema.Types.ObjectId, ref: 'Application'}],
   password: {type: String, required: true},

@@ -21,7 +21,7 @@ class EditApplicantProfile extends Component {
             education: [],
             skills: new Set(),
             rating: 0,
-            resume: [],
+            resume: '',
             profilepic: '',
             presetskills: ['C++', 'Java', 'Python']
         }
@@ -96,21 +96,39 @@ class EditApplicantProfile extends Component {
                     <Grid item xs={4}>
                         <InputLabel>Profile Picture</InputLabel>
                         <img width={300} src={"http://localhost:4000/applicant/profilepic/" + this.state._id} />
-                        <FormHelperText>
-                            <input type="file" accept=".png, .jpg, .jpeg" name="profilepic" onChange={(event) => {
-                                const newPhoto = new FormData();
-                                newPhoto.append('userid', localStorage.getItem("userid"));
-                                newPhoto.append('password', localStorage.getItem("password"));
-                                newPhoto.append('profilepic', event.target.files[0]);
-                                axios.post('http://localhost:4000/applicant/uploadphoto', newPhoto).then(() => {
-                                    alert("Photo uploaded!");
+
+                        <input type="file" accept=".png, .jpg, .jpeg" name="profilepic" onChange={(event) => {
+                            const newPhoto = new FormData();
+                            newPhoto.append('userid', localStorage.getItem("userid"));
+                            newPhoto.append('password', localStorage.getItem("password"));
+                            newPhoto.append('profilepic', event.target.files[0]);
+                            axios.post('http://localhost:4000/applicant/uploadphoto', newPhoto).then(() => {
+                                alert("Photo uploaded!");
+                            })
+                                .catch(function (error) {
+                                    console.log(error);
+                                    alert(error.response.data.error);
                                 })
-                                    .catch(function (error) {
-                                        console.log(error);
-                                        alert(error.response.data.error);
-                                    })
-                            }} />
-                        </FormHelperText>
+                        }} />
+
+                    </Grid>
+                    <Grid item xs={4}>
+                        <InputLabel>Upload Resume (.pdf)</InputLabel>
+                        <InputLabel>{(this.state.resume == "") ? "[Not Submitted!]" : "[Submitted]"}</InputLabel>
+                        <FormHelperText>Note: Your resume and profile picture will be public! </FormHelperText>
+                        <input type="file" accept=".pdf" name="resume" onChange={(event) => {
+                            const newResume = new FormData();
+                            newResume.append('userid', localStorage.getItem("userid"));
+                            newResume.append('password', localStorage.getItem("password"));
+                            newResume.append('resume', event.target.files[0]);
+                            axios.post('http://localhost:4000/applicant/uploadresume', newResume).then(() => {
+                                alert("Resume uploaded!");
+                            })
+                                .catch(function (error) {
+                                    console.log(error);
+                                    alert(error.response.data.error);
+                                })
+                        }} />
                     </Grid>
                     <Grid item xs={8}>
                         <Grid container spacing={6}>
