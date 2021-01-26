@@ -25,7 +25,7 @@ export default class NewApplication extends Component {
 
     componentDidMount() {
         console.log(this.props)
-        if (this.state.job.recruitername == '') {
+        if (this.state.job._recruiter == '') {
             alert("Please do not refresh the application submition page! You will be redirected to your dashboard.");
             window.location = '/dashboard';
         }
@@ -48,7 +48,7 @@ export default class NewApplication extends Component {
 
         const newApplication = {
             jobid: this.state.job._id,
-            email: localStorage.getItem("email"),
+            userid: localStorage.getItem("userid"),
             password: localStorage.getItem("password"),
             sop: this.state.sop,
         }
@@ -75,7 +75,7 @@ export default class NewApplication extends Component {
                     <h1>Submit Application</h1>
                     <Grid container spacing={6} alignItems="center">
                         <Grid item xs={12} sm={6}>
-                            <h3>Recruiter Name : {this.state.job.recruitername}</h3>
+                            <h3>Recruiter Name : {this.state.job._recruiter.name}</h3>
                         </Grid>
                         <Grid item xs={12} sm={6}>
                             <h3>Job Title : {this.state.job.title}</h3>

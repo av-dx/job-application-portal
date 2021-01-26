@@ -26,7 +26,7 @@ class RecruiterApplicationsDashboard extends Component {
 
     componentDidMount() {
         axios.post('http://localhost:4000/applicant/postedapplications', {
-            email: localStorage.getItem("email"),
+            userid: localStorage.getItem("userid"),
             password: localStorage.getItem("password")
         })
             .then(response => {
@@ -43,7 +43,7 @@ class RecruiterApplicationsDashboard extends Component {
         const rating = Number.parseFloat(this.state.ratingToSave);
         console.log([index, applicationid, jobid, rating]);
         axios.post('http://localhost:4000/job/' + jobid + '/rate', {
-            email: localStorage.getItem("email"),
+            userid: localStorage.getItem("userid"),
             password: localStorage.getItem("password"),
             applicationid: applicationid,
             rating: rating,
@@ -88,7 +88,7 @@ class RecruiterApplicationsDashboard extends Component {
                                             <TableCell align="center">{application._job.title}</TableCell>
                                             <TableCell align="center">{(application.status == "Accepted") ? new Date(application.doj).toLocaleDateString() : "Not Applicable"}</TableCell>
                                             <TableCell align="center">{application._job.salary}</TableCell>
-                                            <TableCell align="center">{application._job.recruitername}</TableCell>
+                                            <TableCell align="center">{application._job._recruiter.name}</TableCell>
                                             <TableCell align="center">{application.status}</TableCell>
                                             <TableCell align="center">
                                                 <Rating

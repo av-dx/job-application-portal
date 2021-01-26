@@ -1,3 +1,4 @@
+/* eslint-disable prefer-promise-reject-errors */
 /* eslint-disable max-len */
 /* eslint-disable require-jsdoc */
 const express = require('express');
@@ -23,15 +24,15 @@ router.get('/', function(req, res) {
 
 router.post('/create', (req, res) => {
   const jobid = req.body.jobid;
-  const email = req.body.email;
+  const userid = req.body.userid;
   const password = req.body.password;
-  Jobs.findOne({_id: jobid}).then((job) => {
+  Jobs.findOne({_id: jobid, active: true}).then((job) => {
     if (!job) {
       return res.status(404).json({
-        error: 'Job doesn\'t exist!',
+        error: 'Job doesn\'t exist / Inactive!',
       });
     } else {
-      Applicant.findOne({email: email}).then((applicant) => {
+      Applicant.findById(userid).then((applicant) => {
         if (!applicant) {
           return res.status(404).json({
             error: 'Applicant doesn\'t exist!',
@@ -82,157 +83,57 @@ router.post('/create', (req, res) => {
 });
 
 function hireApplicant(request) {
-  const applicantId = request.id;
+  const applicationId = request.applicationid;
+  const applicantId = request.applicantid;
   const jobId = request.jobid;
-  const recruiterEmail = request.email;
-  const password = request.password;
-  Recruiter.findOne({email: recruiterEmail}).then((recruiter) => {
-    if (!recruiter) {
-      console.log({
-        error: 'Email not found',
-      });
-    } else {
-      bcrypt.compare(password, recruiter.password).then((isMatch) => {
-        if (isMatch) {
-          Jobs.findById(request.jobid).then((job) => {
-            if (!job) {
-              console.log({
-                error: 'Job not found',
-              });
-            } else if (job.recruiteremail != recruiterEmail) {
-              console.log({error: 'This job is not for this recruiter'});
-            } else {
-
-            }
-          });
-          Applicant.findById(request.id).then((applicant) => {
-            if (!applicant) {
-              console.log({error: 'Applicant not found'});
-            } else {
-              recruiter.employees.push({
-                _applicant: applicantId,
-                _job: jobId,
-                doj: Date.now(),
-              }); // imp line!!!!
-              applicant.doj = Date.now();
-              applicant.isHired = true;
-              applicant._applications.forEach((app) => {
-                Application.findById(app).then((appl) => {
-                  Jobs.findOne({_id: appl._job}).then((job) => {
-                    if (!job) {
-                      console.log({
-                        error: 'Job doesn\'t exist!',
+  const recruiterID = request.userid;
+  Jobs.findByIdAndUpdate(jobId, {
+    '$inc': {'count.positions': 1},
+  }, {new: true})
+      .then((job) => {
+        Applicant.findByIdAndUpdate(applicantId, {doj: Date.now(), isHired: true})
+            .then((applicant) => {
+              if (!applicant) {
+                return console.log('Applicant not found');
+              } else {
+                Recruiter.findByIdAndUpdate(recruiterID, {
+                  '$push': {
+                    'employees': {
+                      '_applicant': applicantId,
+                      '_job': jobId,
+                      'doj': Date.now(),
+                    },
+                  },
+                })
+                    .then((recruiter)=>{
+                      Jobs.updateMany({'_id': {'$ne': jobId}}, {
+                        '$inc': {'count.applications': -1},
+                        '$pull': {'applications': {'$in': [applicant.applications]}},
                       });
-                    } else {
-                      Recruiter.findOne({email: job.recruiteremail}).then((recruiter) => {
-                        if (!recruiter) {
-                          console.log({
-                            error: 'Recruiter doesn\'t exist!',
-                          });
-                        } else if (appl.status != 'Accepted') {
-                          appl.status = 'Rejected';
-                          const index = job.applications.indexOf(appl._id);
-                          if (index > -1) {
-                            console.log(job.applications);
-                            job.applications.splice(index, 1);
-                            job.count.applications -= 1;
-                            console.log(job.applications);
-                          }
-                          appl.save(function(err) {
-                            if (err) {
-                              console.log(err);
-                            } else {
-                              console.log({error: 'Employee has been hired!'});
-                            }
-                          });
-                          job.save(function(err) {
-                            if (err) {
-                              console.log(err);
-                            } else {
-                              console.log({error: 'Employee has been hired!'});
-                            }
-                          });
+                      Application.updateMany({_applicant: applicantId, status: {$ne: 'Accepted'}}, {
+                        status: 'Rejected',
+                      }).then(() => {
+                        if (job.count.positions >= job.limit.positions) {
+                          // deactivateJob
+                          Job.findByIdAndUpdate(jobId, {active: false})
+                              .then((j) => {
+                                Recruiter.findById(recruiterID).then((recruiter) => {
+                                  j.applications.forEach((appl) => {
+                                    Application.updateMany({_id: appl, status: {$ne: 'Accepted'}}, {status: 'Rejected'});
+                                  });
+                                });
+                              });
                         }
                       });
-                    }
-                  });
-                });
-              });
-              applicant.save(function(err) {
-                if (err) {
-                  console.log(err);
-                } else {
-                  console.log({error: 'Employee has been hired!'});
-                }
-              });
-              recruiter.save(function(err) {
-                if (err) {
-                  console.log(err);
-                } else {
-                  console.log({error: 'Employee has been hired!'});
-                }
-              });
-            }
-          });
-        } else {
-          return res.status(403).send({
-            error: 'Password Incorrect',
-          });
-        }
-      });
-    }
-  });
-}
-
-
-function deactivateJob(request) {
-  const password = request.password;
-  const email = request.email;
-  const jobid = request.jobid;
-
-  Job.findById(jobid)
-      .then((job) => {
-        if (job.recruiteremail == email) {
-          Recruiter.findOne({email: email}).then((owner) => {
-            if (!owner) {
-              // How did we get here?
-              res.status(500).send({error: 'This Job doesn\'t belong to anybody!'});
-            } else {
-              bcrypt.compare(password, owner.password).then((isMatch) => {
-                if (isMatch) {
-                  Recruiter.updateOne({_id: owner._id}, {$pullAll: {jobs: [job._id]}}).then(() => {
-                    try {
-                      job.applications.forEach((appl) => {
-                        Application.findById(appl).populate('_applicant').then((application)=>{
-                          if (application.status != 'Accepted') {
-                            application.status == 'Rejected';
-                          }
-                          application.save();
-                        });
-                      });
-                      job.delete();
-                      res.status(201).send({error: 'Job is now deactivated since the positions are all full!'});
-                    } catch (err) {
-                      res.status(400).send({error: 'Couldn\'t delete job : ' + err});
-                    }
-                  }).catch((err) => {
-                    res.status(400).send({error: 'Could not update recruiter!: ' + err});
-                  });
-                } else {
-                  res.status(403).send({error: 'Password Incorrect'});
-                }
-              });
-            }
-          });
-        } else {
-          res.status(403).json({error: 'You are not authorised!'});
-        }
+                    });
+              }
+            });
       });
 }
 
 
 router.post('/:id/:status', (req, res) => {
-  const email = req.body.email;
+  const userid = req.body.userid;
   const password = req.body.password;
 
   Application.findById(req.params.id).then((appl) => {
@@ -245,11 +146,13 @@ router.post('/:id/:status', (req, res) => {
             error: 'Job doesn\'t exist!',
           });
         } else {
-          Recruiter.findOne({email: email}).then((recruiter) => {
+          Recruiter.findById(userid).then((recruiter) => {
             if (!recruiter) {
               return res.status(404).json({
                 error: 'Recruiter doesn\'t exist!',
               });
+            } else if (job._recruiter != userid) {
+              return res.status(401).send({error: 'This job doesnt belong to this recruiter!'});
             } else {
               bcrypt.compare(password, recruiter.password).then((isMatch) => {
                 if (isMatch) {
@@ -267,10 +170,13 @@ router.post('/:id/:status', (req, res) => {
                     } else if (appl.status == 'Accepted') {
                       appl.doj = Date.now();
                       job.count.positions += 1;
-                      hireApplicant({id: appl._applicant, email: email, password: password, jobid: job._id});
-                      if (job.count.positions >= job.limit.positions) {
-                        deactivateJob({email: email, password: password, jobid: job._id});
-                      }
+
+                      hireApplicant({
+                        applicationid: req.params.id,
+                        applicantid: appl._applicant,
+                        userid: userid,
+                        jobid: job._id,
+                      });
                     }
                     appl.save(function(err) {
                       if (err) {

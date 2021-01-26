@@ -41,7 +41,7 @@ class RecruiterEmployeesDashboard extends Component {
         console.log(ind);
 
         axios.post('http://localhost:4000/recruiter/rateemployee/' + employee.id, {
-            email: localStorage.getItem("email"),
+            userid: localStorage.getItem("userid"),
             password: localStorage.getItem("password"),
             rating: this.state.ratingToSave,
         }).then(response => {
@@ -142,7 +142,7 @@ class RecruiterEmployeesDashboard extends Component {
     }
 
     componentDidMount() {
-        axios.post('http://localhost:4000/recruiter/employees', { email: localStorage.getItem("email"), password: localStorage.getItem("password") })
+        axios.post('http://localhost:4000/recruiter/employees', { userid: localStorage.getItem("userid"), password: localStorage.getItem("password") })
             .then(response => {
                 var resArray = response.data;
                 var empArray = [];

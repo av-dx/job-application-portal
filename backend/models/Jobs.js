@@ -4,9 +4,7 @@ const Schema = mongoose.Schema;
 // Create Schema
 const JobSchema = new Schema({
   title: {type: String, required: true, minlength: 1},
-  recruitername: {type: String, required: true, minlength: 1},
-  /* TODO: Email integrity check? */
-  recruiteremail: {type: String, required: true, match: /^[\w\-]+(\.[\w\-]+)*@[a-z0-9]+(\-[a-z0-9]+)*(\.[a-z0-9]+(\-[a-z0-9]+)*)*\.[a-z]{2,4}$/},
+  _recruiter: {type: Schema.Types.ObjectId, ref: 'Recruiters', required: true},
   count: {
     applications: {type: Number, required: true, min: 0},
     positions: {type: Number, required: true, min: 0},

@@ -18,23 +18,27 @@ router.get('/', function(req, res) {
 });
 
 
-/* TODO: Currently returns all jobs, see moodle asked by Mehul */
 router.post('/activejobs', function(req, res) {
-  Recruiter.findOne({email: req.body.email}).populate('jobs')
+  Recruiter.findById(req.body.userid).populate('jobs')
       .then((recruiter) => {
         if (!recruiter) {
           return res.status(404).send({
-            error: 'Invalid Recruiter Email',
+            error: 'Recruiter doesn\'t exist',
           });
         } else {
-          console.log(recruiter.jobs);
-          res.status(200).json(recruiter.jobs);
+          const availablejobs = new Set([...recruiter.jobs]);
+          availablejobs.forEach((j, index) => {
+            if (j.active == false) {
+              availablejobs.delete(j);
+            }
+          }, availablejobs);
+          res.status(200).json(Array.from(availablejobs));
         }
       });
 });
 
 router.post('/employees', function(req, res) {
-  Recruiter.findOne({email: req.body.email})
+  Recruiter.findById(req.body.userid)
       .populate({
         path: 'employees',
         populate: [
@@ -45,7 +49,7 @@ router.post('/employees', function(req, res) {
       .then((recruiter) => {
         if (!recruiter) {
           return res.status(403).send({
-            error: 'Invalid Recruiter Email',
+            error: 'Recruiter doesn\'t exist',
           });
         } else {
           bcrypt.compare(req.body.password, recruiter.password).then((isMatch) => {
@@ -69,11 +73,11 @@ router.post('/employees', function(req, res) {
 });
 
 router.post('/rateemployee/:id', function(req, res) {
-  Recruiter.findOne({email: req.body.email})
+  Recruiter.findById(req.body.userid)
       .then((recruiter) => {
         if (!recruiter) {
           return res.status(404).send({
-            error: 'Invalid Recruiter Email',
+            error: 'Recruiter not found',
           });
         } else {
           bcrypt.compare(req.body.password, recruiter.password).then((isMatch) => {
@@ -114,10 +118,10 @@ router.post('/rateemployee/:id', function(req, res) {
 
 
 router.post('/edit', function(req, res) {
-  Recruiter.findOne({email: req.body.curemail}).then((recruiter) => {
+  Recruiter.findById(req.body.userid).then((recruiter) => {
     if (!recruiter) {
       return res.status(404).send({
-        error: 'Email not found',
+        error: 'Recruiter not found',
       });
     } else {
       bcrypt.compare(req.body.password, recruiter.password).then((isMatch) => {
@@ -150,7 +154,7 @@ router.post('/register', (req, res) => {
   Recruiter.findOne({email: req.body.email}).then((recruiter) => {
     if (recruiter) {
       return res.status(400)
-          .json({email: 'Email is already registered with us'});
+          .json({error: 'Email is already registered with us'});
     } else {
       const newRecruiter = new Recruiter({
         name: req.body.name,

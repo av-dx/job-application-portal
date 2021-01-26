@@ -32,10 +32,10 @@ router.get('/', function(req, res) {
 
 router.post('/uploadphoto', upload.single('profilepic'), function(req, res) {
   const profilepic = req.file.filename;
-  Applicant.findOne({email: req.body.curemail}).then((applicant) => {
+  Applicant.findById(req.body.userid).then((applicant) => {
     if (!applicant) {
       return res.status(404).send({
-        error: 'Email not found',
+        error: 'Applicant not found',
       });
     } else {
       bcrypt.compare(req.body.password, applicant.password).then((isMatch) => {
@@ -59,10 +59,10 @@ router.post('/uploadphoto', upload.single('profilepic'), function(req, res) {
 
 
 router.post('/edit', function(req, res) {
-  Applicant.findOne({email: req.body.curemail}).then((applicant) => {
+  Applicant.findById(req.body.userid).then((applicant) => {
     if (!applicant) {
       return res.status(404).send({
-        error: 'Email not found',
+        error: 'Applicant not found',
       });
     } else {
       bcrypt.compare(req.body.password, applicant.password).then((isMatch) => {
@@ -101,12 +101,12 @@ router.post('/edit', function(req, res) {
 
 
 router.post('/postedapplications', function(req, res) {
-  Applicant.findOne({email: req.body.email})
-      .populate({path: '_applications', populate: {path: '_job', model: 'Jobs'}})
+  Applicant.findById(req.body.userid)
+      .populate({path: '_applications', populate: {path: '_job', model: 'Jobs', populate: {path: '_recruiter', model: 'Recruiters'}}})
       .then((applicant) => {
         if (!applicant) {
           return res.status(404).send({
-            error: 'Email not found',
+            error: 'Applicant not found',
           });
         } else {
           bcrypt.compare(req.body.password, applicant.password).then((isMatch) => {

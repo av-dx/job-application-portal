@@ -10,9 +10,9 @@ const Applicant = require('../models/Applicant');
 const Application = require('../models/Application');
 
 router.get('/', function(req, res) {
-  Job.find(function(err, jobs) {
-    if (err) {
-      console.log(err);
+  Job.find().populate('_recruiter').then((jobs) => {
+    if (!jobs) {
+      console.log('No jobs to return');
     } else {
       const availablejobs = new Set([...jobs]);
       availablejobs.forEach((j, index) => {
@@ -28,7 +28,7 @@ router.get('/', function(req, res) {
 
 router.post('/:id/applications', function(req, res) {
   const password = req.body.password;
-  const email = req.body.email;
+  const userid = req.body.userid;
 
   Job.findById(req.params.id).populate({
     path: 'applications', model: 'Application',
@@ -40,8 +40,8 @@ router.post('/:id/applications', function(req, res) {
             error: 'Job doesn\'t exist!',
           });
         } else {
-          if (job.recruiteremail == email) {
-            Recruiter.findOne({email: email}).then((owner) => {
+          if (job._recruiter == userid) {
+            Recruiter.findById(userid).then((owner) => {
               if (!owner) {
               // How did we get here?
                 res.status(500)
@@ -49,7 +49,13 @@ router.post('/:id/applications', function(req, res) {
               } else {
                 bcrypt.compare(password, owner.password).then((isMatch) => {
                   if (isMatch) {
-                    res.status(200).send({array: job.applications});
+                    const availableApplications = new Set([...job.applications]);
+                    availableApplications.forEach((j, index) => {
+                      if (j.status == 'Rejected') {
+                        availableApplications.delete(j);
+                      }
+                    }, availableApplications);
+                    res.status(200).send({array: Array.from(availableApplications)});
                   } else {
                     res.status(403).send({error: 'Password Incorrect'});
                   }
@@ -65,9 +71,9 @@ router.post('/:id/applications', function(req, res) {
 
 
 router.post('/postjob', (req, res) => {
-  const email = req.body.email;
+  const userid = req.body.userid;
   const password = req.body.password;
-  Recruiter.findOne({email}).then((recruiter) => {
+  Recruiter.findById(userid).then((recruiter) => {
     if (!recruiter) {
       return res.status(404).json({
         error: 'Recruiter doesn\'t exist!',
@@ -77,23 +83,16 @@ router.post('/postjob', (req, res) => {
         if (isMatch) {
           const newJob = new Job({
             title: req.body.title,
-            /* TODO: Email integrity check? */
-            recruitername: recruiter.name,
-            recruiteremail: recruiter.email,
+            _recruiter: recruiter._id,
             count: {applications: 0, positions: 0},
             limit: req.body.limit,
             postedOn: Date.now(),
             deadline: req.body.deadline,
             active: true,
-            /* TODO: Limit to Languages? */
             skillset: req.body.skillset,
-            /* TODO: Enumerators ? */
             type: req.body.type,
-            /* TODO: Limit to 1-6 months, and 0 indefinite */
             duration: req.body.duration % 7,
-            /* TODO: Salary positive check */
-            salary: Number.parseFloat(req.body.salary).toFixed(),
-            /* TODO: Dynamic ..... */
+            salary: Number.parseFloat(req.body.salary).toFixed(0),
             rating: 0,
             ratedBy: 0,
           });
@@ -106,10 +105,6 @@ router.post('/postjob', (req, res) => {
           }
           if (newJob.limit.applications < newJob.limit.positions) {
             errMsg += 'Max number of applications should be more than the positions! ';
-          }
-          const pattern = /^[a-zA-Z0-9\-_]+(\.[a-zA-Z0-9\-_]+)*@[a-z0-9]+(\-[a-z0-9]+)*(\.[a-z0-9]+(\-[a-z0-9]+)*)*\.[a-z]{2,4}$/;
-          if (!(pattern.test(newJob.recruiteremail))) {
-            errMsg += 'Invalid email format! ';
           }
 
           if (errMsg != '') {
@@ -138,7 +133,7 @@ router.post('/postjob', (req, res) => {
 
 router.post('/:id/edit', (req, res) => {
   const password = req.body.password;
-  const email = req.body.email;
+  const userid = req.body.userid;
   const limit = req.body.limit;
   const deadline = req.body.deadline;
 
@@ -149,8 +144,8 @@ router.post('/:id/edit', (req, res) => {
             error: 'Job doesn\'t exist!',
           });
         } else {
-          if (job.recruiteremail == email) {
-            Recruiter.findOne({email: email}).then((owner) => {
+          if (job._recruiter == userid) {
+            Recruiter.findById(userid).then((owner) => {
               if (!owner) {
               // How did we get here?
                 res.status(500).send({error: 'This Job doesn\'t belong to anybody!'});
@@ -161,6 +156,10 @@ router.post('/:id/edit', (req, res) => {
                     job.deadline = Date.parse(deadline);
 
                     errMsg = '';
+
+                    if (job.limit.positions < job.count.positions) {
+                      errMsg += 'Already more than '+job.count.positions+' employees have been hired! ';
+                    }
 
                     if (job.limit.applications < job.limit.positions) {
                       errMsg += 'Max number of applications should be more than the positions! ';
@@ -193,7 +192,7 @@ router.post('/:id/edit', (req, res) => {
 
 router.post('/:id/rate', (req, res) => {
   const password = req.body.password;
-  const email = req.body.email;
+  const userid = req.body.userid;
   const applicationid = req.body.applicationid;
   const jobid = req.params.id;
   const rating = req.body.rating;
@@ -218,7 +217,7 @@ router.post('/:id/rate', (req, res) => {
                 } else if (application.status != 'Accepted') {
                   return res.status(403).send({error: 'This application has not been accepted!'});
                 } else {
-                  Applicant.findOne({email: email}).then((applicant) => {
+                  Applicant.findById(userid).then((applicant) => {
                     if (!applicant) {
                       // How did we get here?
                       res.status(404)
@@ -256,12 +255,12 @@ router.post('/:id/rate', (req, res) => {
 
 router.delete('/:id', (req, res) => {
   const password = req.body.password;
-  const email = req.body.email;
+  const userid = req.body.userid;
 
   Job.findById(req.params.id)
       .then((job) => {
-        if (job.recruiteremail == email) {
-          Recruiter.findOne({email: email}).then((owner) => {
+        if (job._recruiter == userid) {
+          Recruiter.findById(userid).then((owner) => {
             if (!owner) {
             // How did we get here?
               res.status(500).send({error: 'This Job doesn\'t belong to anybody!'});

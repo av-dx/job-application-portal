@@ -11,6 +11,7 @@ import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 import EditIcon from '@material-ui/icons/Edit';
 import DeleteForeverIcon from '@material-ui/icons/DeleteForever';
+import ClearIcon from '@material-ui/icons/Clear';
 import DoneIcon from '@material-ui/icons/Done';
 import { Link } from 'react-router-dom';
 
@@ -47,7 +48,7 @@ class RecruiterDashboard extends Component {
         }
         const newDeadline = this.state.newDeadline;
         axios.post('http://localhost:4000/job/' + id + '/edit', {
-            email: localStorage.getItem("email"),
+            userid: localStorage.getItem("userid"),
             password: localStorage.getItem("password"),
             limit: newLimit,
             deadline: newDeadline,
@@ -65,7 +66,7 @@ class RecruiterDashboard extends Component {
 
     onDeleteJob(id, index) {
         console.log(id);
-        axios.delete('http://localhost:4000/job/' + id, { data: { email: localStorage.getItem("email"), password: localStorage.getItem("password") } })
+        axios.delete('http://localhost:4000/job/' + id, { data: { userid: localStorage.getItem("userid"), password: localStorage.getItem("password") } })
             .then(response => {
                 console.log(response.data.error);
                 var jobs = [...this.state.jobs];
@@ -78,7 +79,7 @@ class RecruiterDashboard extends Component {
     }
 
     componentDidMount() {
-        axios.post('http://localhost:4000/recruiter/activejobs', { email: localStorage.getItem("email"), password: localStorage.getItem("password") })
+        axios.post('http://localhost:4000/recruiter/activejobs', { userid: localStorage.getItem("userid"), password: localStorage.getItem("password") })
             .then(response => {
                 this.setState({
                     jobs: response.data,
@@ -166,24 +167,32 @@ class RecruiterDashboard extends Component {
                                             </TableCell>
                                             <TableCell align="center">
                                                 {(this.state.editing == ind) ?
-                                                    <Button color="primary" onClick={this.onEditJob.bind(this, job._id, ind)}>
+                                                    <div> <Button color="primary" onClick={this.onEditJob.bind(this, job._id, ind)}>
                                                         <DoneIcon></DoneIcon>
                                                     </Button>
+                                                        <Button color="secondary" onClick={() => { this.setState({ editing: "none" }) }}>
+                                                            <ClearIcon></ClearIcon>
+                                                        </Button>
+                                                    </div>
                                                     :
-                                                    <Button color="primary" onClick={() => {
-                                                        this.setState({
-                                                            editing: ind,
-                                                            newDeadline: job.deadline,
-                                                            newMaxPositions: job.limit.positions,
-                                                            newMaxApplications: job.limit.applications
-                                                        })
-                                                    }}>
-                                                        <EditIcon></EditIcon>
-                                                    </Button>
+                                                    <div>
+                                                        <Button color="primary" onClick={() => {
+                                                            this.setState({
+                                                                editing: ind,
+                                                                newDeadline: job.deadline,
+                                                                newMaxPositions: job.limit.positions,
+                                                                newMaxApplications: job.limit.applications
+                                                            })
+                                                        }}>
+                                                            <EditIcon></EditIcon>
+                                                        </Button>
+                                                        <Button color="secondary" onClick={this.onDeleteJob.bind(this, job._id, ind)}>
+                                                            <DeleteForeverIcon></DeleteForeverIcon>
+                                                        </Button>
+                                                    </div>
                                                 }
-                                                <Button color="secondary" onClick={this.onDeleteJob.bind(this, job._id, ind)}>
-                                                    <DeleteForeverIcon></DeleteForeverIcon>
-                                                </Button>
+
+
                                             </TableCell>
                                         </TableRow>
                                     ))}

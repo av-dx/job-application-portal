@@ -330,7 +330,7 @@ class ApplicantDashboard extends Component {
                                     {this.state.displayedJobs.map((job, ind) => (
                                         <TableRow key={ind}>
                                             <TableCell>{job.title}</TableCell>
-                                            <TableCell>{job.recruitername}</TableCell>
+                                            <TableCell>{job._recruiter.name}</TableCell>
                                             <TableCell>{job.duration}</TableCell>
                                             <TableCell>{job.salary}</TableCell>
                                             <TableCell>{new Date(job.deadline).toLocaleString()}</TableCell>

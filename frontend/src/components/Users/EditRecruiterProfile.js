@@ -30,7 +30,7 @@ class EditRecruiterProfile extends Component {
         e.preventDefault();
         const newRecruiter = {
             name: this.state.name,
-            curemail: localStorage.getItem("email"),
+            userid: localStorage.getItem("userid"),
             email: this.state.email,
             contact: this.state.contact,
             bio: this.state.bio,
@@ -38,7 +38,7 @@ class EditRecruiterProfile extends Component {
         }
         axios.post('http://localhost:4000/recruiter/edit', newRecruiter)
             .then(res => {
-                localStorage.setItem("email", newRecruiter.email);
+                localStorage.setItem("userid", newRecruiter.userid);
                 localStorage.setItem("name", newRecruiter.name);
                 alert("Account info updated!");
                 console.log(res.data);

@@ -38,7 +38,7 @@ class RecruiterApplicationsDashboard extends Component {
 
     componentDidMount() {
         axios.post('http://localhost:4000/job/' + this.state.job._id + '/applications', {
-            email: localStorage.getItem("email"),
+            userid: localStorage.getItem("userid"),
             password: localStorage.getItem("password")
         })
             .then(response => {
@@ -53,7 +53,7 @@ class RecruiterApplicationsDashboard extends Component {
 
     updateApplication(index, applicationid, newStatus) {
         axios.post('http://localhost:4000/application/' + applicationid + '/' + newStatus, {
-            email: localStorage.getItem("email"),
+            userid: localStorage.getItem("userid"),
             password: localStorage.getItem("password"),
             jobid: this.state.job._id,
         })
