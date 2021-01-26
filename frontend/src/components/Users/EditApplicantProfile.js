@@ -55,6 +55,7 @@ class EditApplicantProfile extends Component {
         e.preventDefault();
         const newApplicant = {
             name: this.state.name,
+            userid: localStorage.getItem("userid"),
             curemail: localStorage.getItem("email"),
             email: this.state.email,
             education: this.state.education,
@@ -63,7 +64,7 @@ class EditApplicantProfile extends Component {
         }
         axios.post('http://localhost:4000/applicant/edit', newApplicant)
             .then(res => {
-                localStorage.setItem("email", newApplicant.email);
+                localStorage.setItem("userid", newApplicant.userid);
                 localStorage.setItem("name", newApplicant.name);
                 alert("Account info updated!");
                 console.log(res.data);
@@ -98,7 +99,7 @@ class EditApplicantProfile extends Component {
                         <FormHelperText>
                             <input type="file" accept=".png, .jpg, .jpeg" name="profilepic" onChange={(event) => {
                                 const newPhoto = new FormData();
-                                newPhoto.append('curemail', localStorage.getItem("email"));
+                                newPhoto.append('userid', localStorage.getItem("userid"));
                                 newPhoto.append('password', localStorage.getItem("password"));
                                 newPhoto.append('profilepic', event.target.files[0]);
                                 axios.post('http://localhost:4000/applicant/uploadphoto', newPhoto).then(() => {
