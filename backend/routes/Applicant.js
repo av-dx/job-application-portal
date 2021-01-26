@@ -35,7 +35,7 @@ router.get('/', function(req, res) {
 });
 
 
-router.post('/uploadphoto', photoUpload.single('profilepic'), function(req, res) {
+router.post('/uploadphoto', pdfUpload.single('profilepic'), function(req, res) {
   const profilepic = req.file.filename;
   Applicant.findById(req.body.userid).then((applicant) => {
     if (!applicant) {
